@@ -1,0 +1,259 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
+import { ApiProperty } from '@nestjs/swagger';
+
+export type ProductDocument = Product & Document;
+
+export enum ProductType {
+  SIMPLE = 'simple',
+  VARIABLE = 'variable',
+  GROUPED = 'grouped',
+  EXTERNAL = 'external',
+}
+
+export enum StockStatus {
+  INSTOCK = 'instock',
+  OUTOFSTOCK = 'outofstock',
+  ONBACKORDER = 'onbackorder',
+}
+
+export enum ProductStatus {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+}
+
+@Schema({ timestamps: true })
+export class Product {
+  @ApiProperty({ description: 'Product ID' })
+  _id: string;
+
+  @ApiProperty({ description: 'Product name' })
+  @Prop({ required: true, trim: true })
+  name: string;
+
+  @ApiProperty({ description: 'SEO friendly unique URL slug' })
+  @Prop({ required: true, unique: true, trim: true })
+  slug: string;
+
+  @ApiProperty({ description: 'Product description' })
+  @Prop({ required: true })
+  description: string;
+
+  @ApiProperty({ description: 'Short product description' })
+  @Prop({ required: true })
+  shortDescription: string;
+
+  @ApiProperty({ description: 'Stock Keeping Unit' })
+  @Prop({ required: true, unique: true, trim: true })
+  sku: string;
+
+  @ApiProperty({ enum: ProductType, description: 'Product type' })
+  @Prop({ required: true, enum: ProductType, default: ProductType.SIMPLE })
+  type: ProductType;
+
+  @ApiProperty({ description: 'Product price' })
+  @Prop({ required: true, min: 0 })
+  price: number;
+
+  @ApiProperty({ description: 'Sale price (optional)' })
+  @Prop({ min: 0 })
+  salePrice?: number;
+
+  @ApiProperty({ description: 'Currency code' })
+  @Prop({ required: true, default: 'USD' })
+  currency: string;
+
+  @ApiProperty({ description: 'Stock quantity' })
+  @Prop({ required: true, min: 0, default: 0 })
+  stockQuantity: number;
+
+  @ApiProperty({ enum: StockStatus, description: 'Stock status' })
+  @Prop({ required: true, enum: StockStatus, default: StockStatus.OUTOFSTOCK })
+  stockStatus: StockStatus;
+
+  @ApiProperty({ description: 'Product weight' })
+  @Prop({ min: 0 })
+  weight?: number;
+
+  @ApiProperty({ description: 'Product dimensions' })
+  @Prop({
+    type: {
+      length: { type: Number, min: 0 },
+      width: { type: Number, min: 0 },
+      height: { type: Number, min: 0 },
+    },
+  })
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+  };
+
+  @ApiProperty({ description: 'Whether to manage stock' })
+  @Prop({ default: true })
+  manageStock: boolean;
+
+  @ApiProperty({ description: 'Whether to allow backorders' })
+  @Prop({ default: false })
+  allowBackorders: boolean;
+
+  @ApiProperty({ enum: ProductStatus, description: 'Product status' })
+  @Prop({ required: true, enum: ProductStatus, default: ProductStatus.DRAFT })
+  status: ProductStatus;
+
+  @ApiProperty({ description: 'Category IDs' })
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Category' })
+  categories: string[];
+
+  @ApiProperty({ description: 'Tag IDs' })
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Tag' })
+  tags: string[];
+
+  @ApiProperty({ description: 'Brand ID' })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Brand' })
+  brand?: string;
+
+  @ApiProperty({ description: 'Product attributes' })
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'ProductAttribute' })
+  attributes: string[];
+
+  @ApiProperty({ description: 'Product variations' })
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'ProductVariation' })
+  variations?: string[];
+
+  @ApiProperty({ description: 'Product images' })
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'ProductImage' })
+  images: string[];
+
+  // Pakistani Clothing Specific Fields
+  @ApiProperty({ description: 'Fabric type (e.g., Cotton, Silk, Lawn, Chiffon)' })
+  @Prop({ trim: true })
+  fabric?: string;
+
+  @ApiProperty({ description: 'Collection name (e.g., Summer 2024, Eid Collection)' })
+  @Prop({ trim: true })
+  collection?: string;
+
+  @ApiProperty({ description: 'Occasion type (e.g., Formal, Casual, Wedding, Party)' })
+  @Prop({ trim: true })
+  occasion?: string;
+
+  @ApiProperty({ description: 'Season (e.g., Summer, Winter, All Season)' })
+  @Prop({ trim: true })
+  season?: string;
+
+  @ApiProperty({ description: 'Care instructions' })
+  @Prop()
+  careInstructions?: string;
+
+  @ApiProperty({ description: 'Model measurements for size reference' })
+  @Prop({
+    type: {
+      height: { type: String },
+      bust: { type: String },
+      waist: { type: String },
+      hips: { type: String },
+    },
+  })
+  modelMeasurements?: {
+    height: string;
+    bust: string;
+    waist: string;
+    hips: string;
+  };
+
+  @ApiProperty({ description: 'Designer/Design House name' })
+  @Prop({ trim: true })
+  designer?: string;
+
+  @ApiProperty({ description: 'Handwork details (e.g., Embroidery, Zari, Sequins)' })
+  @Prop({ type: [String] })
+  handwork?: string[];
+
+  @ApiProperty({ description: 'Color family (e.g., Pastels, Brights, Neutrals)' })
+  @Prop({ trim: true })
+  colorFamily?: string;
+
+  @ApiProperty({ description: 'Pattern type (e.g., Solid, Floral, Geometric, Abstract)' })
+  @Prop({ trim: true })
+  pattern?: string;
+
+  @ApiProperty({ description: 'Sleeve length (e.g., Sleeveless, Short, 3/4, Long)' })
+  @Prop({ trim: true })
+  sleeveLength?: string;
+
+  @ApiProperty({ description: 'Neckline style (e.g., Round, V-neck, Boat, High)' })
+  @Prop({ trim: true })
+  neckline?: string;
+
+  @ApiProperty({ description: 'Length (e.g., Short, Medium, Long, Floor Length)' })
+  @Prop({ trim: true })
+  length?: string;
+
+  @ApiProperty({ description: 'Fit type (e.g., Loose, Fitted, Semi-fitted, Oversized)' })
+  @Prop({ trim: true })
+  fit?: string;
+
+  @ApiProperty({ description: 'Age group (e.g., Young Adult, Adult, Mature)' })
+  @Prop({ trim: true })
+  ageGroup?: string;
+
+  @ApiProperty({ description: 'Body type suitability' })
+  @Prop({ type: [String] })
+  bodyType?: string[];
+
+  @ApiProperty({ description: 'Is this a limited edition item' })
+  @Prop({ default: false })
+  isLimitedEdition?: boolean;
+
+  @ApiProperty({ description: 'Is this a custom made item' })
+  @Prop({ default: false })
+  isCustomMade?: boolean;
+
+  @ApiProperty({ description: 'Estimated delivery time for custom items (in days)' })
+  @Prop({ min: 0 })
+  customDeliveryDays?: number;
+
+  @ApiProperty({ description: 'Size chart ID for this product' })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'SizeChart' })
+  sizeChart?: string;
+
+  @ApiProperty({ description: 'Available sizes for this product' })
+  @Prop({ type: [String] })
+  availableSizes?: string[];
+
+  @ApiProperty({ description: 'Creation timestamp' })
+  createdAt: Date;
+
+  @ApiProperty({ description: 'Last update timestamp' })
+  updatedAt: Date;
+}
+
+export const ProductSchema = SchemaFactory.createForClass(Product);
+
+// Indexes for better performance
+ProductSchema.index({ brand: 1 });
+ProductSchema.index({ categories: 1 });
+ProductSchema.index({ status: 1 });
+ProductSchema.index({ price: 1 });
+ProductSchema.index({ createdAt: -1 });
+
+// Pakistani Clothing Specific Indexes
+ProductSchema.index({ fabric: 1 });
+ProductSchema.index({ collection: 1 });
+ProductSchema.index({ occasion: 1 });
+ProductSchema.index({ season: 1 });
+ProductSchema.index({ designer: 1 });
+ProductSchema.index({ handwork: 1 });
+ProductSchema.index({ colorFamily: 1 });
+ProductSchema.index({ pattern: 1 });
+ProductSchema.index({ sleeveLength: 1 });
+ProductSchema.index({ neckline: 1 });
+ProductSchema.index({ length: 1 });
+ProductSchema.index({ fit: 1 });
+ProductSchema.index({ ageGroup: 1 });
+ProductSchema.index({ bodyType: 1 });
+ProductSchema.index({ isLimitedEdition: 1 });
+ProductSchema.index({ isCustomMade: 1 });
+ProductSchema.index({ sizeChart: 1 });
+ProductSchema.index({ availableSizes: 1 }); 

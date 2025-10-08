@@ -121,7 +121,7 @@ export class CreateProductDto {
   @ApiPropertyOptional({ description: 'Collection name (e.g., Summer 2024, Eid Collection)' })
   @IsOptional()
   @IsString()
-  collection?: string;
+  collectionName?: string;
 
   @ApiPropertyOptional({ description: 'Occasion type (e.g., Formal, Casual, Wedding, Party)' })
   @IsOptional()

@@ -51,7 +51,7 @@ export class ProductFilterDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  collections?: string[];
+  collectionNames?: string[];
 
   @ApiPropertyOptional({ description: 'Occasions' })
   @IsOptional()

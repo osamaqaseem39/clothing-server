@@ -127,23 +127,23 @@ export class Product {
 
   // Pakistani Clothing Specific Fields
   @ApiProperty({ description: 'Fabric type (e.g., Cotton, Silk, Lawn, Chiffon)' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   fabric?: string;
 
   @ApiProperty({ description: 'Collection name (e.g., Summer 2024, Eid Collection)' })
-  @Prop({ trim: true })
-  collection?: string;
+  @Prop({ type: String, trim: true })
+  collectionName?: string;
 
   @ApiProperty({ description: 'Occasion type (e.g., Formal, Casual, Wedding, Party)' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   occasion?: string;
 
   @ApiProperty({ description: 'Season (e.g., Summer, Winter, All Season)' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   season?: string;
 
   @ApiProperty({ description: 'Care instructions' })
-  @Prop()
+  @Prop({ type: String })
   careInstructions?: string;
 
   @ApiProperty({ description: 'Model measurements for size reference' })
@@ -163,7 +163,7 @@ export class Product {
   };
 
   @ApiProperty({ description: 'Designer/Design House name' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   designer?: string;
 
   @ApiProperty({ description: 'Handwork details (e.g., Embroidery, Zari, Sequins)' })
@@ -171,31 +171,31 @@ export class Product {
   handwork?: string[];
 
   @ApiProperty({ description: 'Color family (e.g., Pastels, Brights, Neutrals)' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   colorFamily?: string;
 
   @ApiProperty({ description: 'Pattern type (e.g., Solid, Floral, Geometric, Abstract)' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   pattern?: string;
 
   @ApiProperty({ description: 'Sleeve length (e.g., Sleeveless, Short, 3/4, Long)' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   sleeveLength?: string;
 
   @ApiProperty({ description: 'Neckline style (e.g., Round, V-neck, Boat, High)' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   neckline?: string;
 
   @ApiProperty({ description: 'Length (e.g., Short, Medium, Long, Floor Length)' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   length?: string;
 
   @ApiProperty({ description: 'Fit type (e.g., Loose, Fitted, Semi-fitted, Oversized)' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   fit?: string;
 
   @ApiProperty({ description: 'Age group (e.g., Young Adult, Adult, Mature)' })
-  @Prop({ trim: true })
+  @Prop({ type: String, trim: true })
   ageGroup?: string;
 
   @ApiProperty({ description: 'Body type suitability' })
@@ -240,7 +240,7 @@ ProductSchema.index({ createdAt: -1 });
 
 // Pakistani Clothing Specific Indexes
 ProductSchema.index({ fabric: 1 });
-ProductSchema.index({ collection: 1 });
+ProductSchema.index({ collectionName: 1 });
 ProductSchema.index({ occasion: 1 });
 ProductSchema.index({ season: 1 });
 ProductSchema.index({ designer: 1 });

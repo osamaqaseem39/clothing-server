@@ -54,6 +54,25 @@ async function bootstrap() {
 
 // For Vercel deployment
 export default async (req: any, res: any) => {
+  // Handle CORS preflight explicitly for Vercel functions
+  if (req.method === 'OPTIONS') {
+    const origin = req.headers?.origin as string | undefined;
+    const allowedOrigins = [
+      'https://clothing-dashboard-seven.vercel.app',
+      'http://localhost:3000',
+    ];
+
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+      res.setHeader('Access-Control-Max-Age', '600');
+    }
+    res.status(204).end();
+    return;
+  }
   const nestApp = await bootstrap();
   return nestApp.getHttpAdapter().getInstance()(req, res);
 };

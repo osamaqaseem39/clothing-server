@@ -21,7 +21,12 @@ async function bootstrap() {
     }));
 
     // CORS
-    app.enableCors();
+    app.enableCors({
+      origin: [
+        'https://clothing-dashboard-seven.vercel.app',
+      ],
+      credentials: true,
+    });
 
     // Swagger documentation
     const swaggerConfig = configService.get('swagger');

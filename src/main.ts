@@ -28,7 +28,7 @@ async function bootstrap() {
       ],
       credentials: true,
       methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+      allowedHeaders: '*',
       exposedHeaders: ['Content-Range', 'X-Total-Count'],
       preflightContinue: false,
       optionsSuccessStatus: 204,
@@ -62,12 +62,13 @@ export default async (req: any, res: any) => {
       'http://localhost:3000',
     ];
 
+    const requestHeaders = (req.headers['access-control-request-headers'] as string) || '*';
     if (origin && allowedOrigins.includes(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Vary', 'Origin');
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+      res.setHeader('Access-Control-Allow-Headers', requestHeaders);
       res.setHeader('Access-Control-Max-Age', '600');
     }
     res.status(204).end();

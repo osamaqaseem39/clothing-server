@@ -1,12 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build",
-  "builds": [
-    {
-      "src": "dist/main.js",
-      "use": "@vercel/node@3.0.0"
-    }
-  ],
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "routes": [
     {
       "src": "/(.*)",

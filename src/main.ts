@@ -22,10 +22,14 @@ async function bootstrap() {
 
     // CORS
     app.enableCors({
-      origin: [
-        'https://clothing-dashboard-seven.vercel.app',
-      ],
+      // Reflect request origin (useful across environments). For strict prod, replace with explicit allowlist.
+      origin: true,
       credentials: true,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+      exposedHeaders: ['Content-Range', 'X-Total-Count'],
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
     });
 
     // Swagger documentation

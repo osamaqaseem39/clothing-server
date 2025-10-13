@@ -22,8 +22,11 @@ async function bootstrap() {
 
     // CORS
     app.enableCors({
-      // Reflect request origin (useful across environments). For strict prod, replace with explicit allowlist.
-      origin: true,
+      // Allow base domain and any subdomains (paths are inherently allowed by origin)
+      origin: [
+        /^https?:\/\/(?:[a-z0-9-]+\.)?clothing-dashboard-seven\.vercel\.app$/i,
+        /^http:\/\/localhost(?::\d+)?$/i,
+      ],
       credentials: true,
       methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],

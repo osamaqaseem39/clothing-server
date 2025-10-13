@@ -14,6 +14,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { CouponModule } from './modules/coupon/coupon.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { ShippingModule } from './modules/shipping/shipping.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { ShippingModule } from './modules/shipping/shipping.module';
     CouponModule,
     PaymentModule,
     ShippingModule,
+    HealthModule,
   ],
 })
 export class AppModule {} 

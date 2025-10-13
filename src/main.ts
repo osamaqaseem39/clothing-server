@@ -21,18 +21,24 @@ async function bootstrap() {
     }));
 
     // CORS
+    const allowedOriginPatterns = [
+      /^https?:\/\/(?:[a-z0-9-]+\.)?clothing-dashboard-seven\.vercel\.app$/i,
+      /^http:\/\/localhost(?::\d+)?$/i,
+    ];
+
     app.enableCors({
-      // Allow base domain and any subdomains (paths are inherently allowed by origin)
-      origin: [
-        /^https?:\/\/(?:[a-z0-9-]+\.)?clothing-dashboard-seven\.vercel\.app$/i,
-        /^http:\/\/localhost(?::\d+)?$/i,
-      ],
+      origin: (origin: string, callback: (err: Error | null, allow?: boolean) => void) => {
+        if (!origin) return callback(null, true); // non-browser or same-origin
+        const isAllowed = allowedOriginPatterns.some((pattern) => pattern.test(origin));
+        return isAllowed ? callback(null, true) : callback(new Error('Not allowed by CORS'));
+      },
       credentials: true,
       methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
       exposedHeaders: ['Content-Range', 'X-Total-Count'],
       preflightContinue: false,
       optionsSuccessStatus: 204,
+      maxAge: 600,
     });
 
     // Swagger documentation

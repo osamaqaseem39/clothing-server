@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from '@/app.module';
 import { ConfigService } from '@nestjs/config';
+import { join } from 'path';
 
 let app: any;
 
@@ -19,6 +20,9 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transform: true,
     }));
+
+    // Static assets from /public
+    app.useStaticAssets(join(__dirname, '..', 'public'));
 
     // CORS
     app.enableCors({

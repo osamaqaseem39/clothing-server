@@ -11,7 +11,6 @@
   },
   "scripts": {
     "build": "nest build",
-    "vercel-build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",

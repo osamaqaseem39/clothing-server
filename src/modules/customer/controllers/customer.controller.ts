@@ -51,6 +51,27 @@ export class CustomerController {
     return await this.customerService.createCustomer(createCustomerDto);
   }
 
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Register a new customer' })
+  @ApiResponse({
+    status: 201,
+    description: 'Customer registered successfully',
+    type: Customer,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation error',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict - customer with same email already exists',
+  })
+  @ApiBody({ type: CreateCustomerDto })
+  async register(@Body() createCustomerDto: CreateCustomerDto): Promise<Customer> {
+    return await this.customerService.createCustomer(createCustomerDto);
+  }
+
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Customer login' })

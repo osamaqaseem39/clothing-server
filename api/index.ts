@@ -1,4 +1,4 @@
-import handler from '../src/main'
+import handler from '../dist/main'
 
 export default handler
 

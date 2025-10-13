@@ -71,7 +71,8 @@ export default async (req: any, res: any) => {
       res.setHeader('Access-Control-Allow-Headers', requestHeaders);
       res.setHeader('Access-Control-Max-Age', '600');
     }
-    res.status(204).end();
+    res.statusCode = 204;
+    res.end();
     return;
   }
   const nestApp = await bootstrap();

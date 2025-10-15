@@ -50,8 +50,14 @@ async function bootstrap() {
         .build();
 
       const document = SwaggerModule.createDocument(app, config);
-      SwaggerModule.setup('/api/docs', app, document, {
-        jsonDocumentUrl: '/api/docs-json',
+      SwaggerModule.setup('api/docs', app, document, {
+        jsonDocumentUrl: 'api/docs-json',
+        // Serve UI assets from CDN to avoid serverless static routing issues
+        customCssUrl: 'https://unpkg.com/swagger-ui-dist@5/swagger-ui.css',
+        customJs: [
+          'https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js',
+          'https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
+        ],
         swaggerOptions: {
           persistAuthorization: true,
           displayRequestDuration: true,

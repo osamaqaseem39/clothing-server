@@ -57,6 +57,10 @@ async function bootstrap() {
           displayRequestDuration: true,
         },
       });
+
+      // Ensure trailing slash so relative assets (e.g., ./swagger-ui.css) resolve correctly
+      const httpAdapter = app.getHttpAdapter().getInstance();
+      httpAdapter.get('/api/docs', (_req: any, res: any) => res.redirect('/api/docs/'));
     }
 
     await app.init();

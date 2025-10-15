@@ -43,9 +43,9 @@ async function bootstrap() {
     // Swagger documentation (toggleable)
     const swaggerConfig = configService.get('swagger');
     if (swaggerConfig.enabled) {
-      // Serve swagger-ui-dist assets under /api/docs so relative links resolve on serverless
+      // Serve swagger-ui-dist assets under a separate prefix to avoid shadowing /api/docs
       const swaggerUiAssetsDir = dirname(require.resolve('swagger-ui-dist/swagger-ui.css'));
-      app.use('/api/docs', express.static(swaggerUiAssetsDir));
+      app.use('/api/docs-assets', express.static(swaggerUiAssetsDir));
 
       const config = new DocumentBuilder()
         .setTitle(swaggerConfig.title)
@@ -57,12 +57,11 @@ async function bootstrap() {
       const document = SwaggerModule.createDocument(app, config);
       SwaggerModule.setup('api/docs', app, document, {
         jsonDocumentUrl: 'api/docs-json',
-        // Point to local copies under /api/docs
-        customCssUrl: '/api/docs/swagger-ui.css',
+        // Point to local copies under /api/docs-assets
+        customCssUrl: '/api/docs-assets/swagger-ui.css',
         customJs: [
-          '/api/docs/swagger-ui-bundle.js',
-          '/api/docs/swagger-ui-standalone-preset.js',
-          '/api/docs/swagger-ui-init.js',
+          '/api/docs-assets/swagger-ui-bundle.js',
+          '/api/docs-assets/swagger-ui-standalone-preset.js',
         ],
         swaggerOptions: {
           persistAuthorization: true,

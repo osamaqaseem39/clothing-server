@@ -1,10 +1,10 @@
 import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
-import { BaseService } from '@/common/services/base.service';
+import { BaseService } from '../../../common/services/base.service';
 import { CouponRepository } from '../repositories/coupon.repository';
 import { CouponDocument, DiscountType } from '../schemas/coupon.schema';
 import { CreateCouponDto } from '../dto/create-coupon.dto';
 import { UpdateCouponDto } from '../dto/update-coupon.dto';
-import { PaginatedResult } from '@/common/interfaces/base.interface';
+import { PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @Injectable()
 export class CouponService extends BaseService<CouponDocument> {

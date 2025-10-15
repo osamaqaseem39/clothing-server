@@ -21,9 +21,9 @@ import {
 import { OrderService } from '../services/order.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderDto } from '../dto/update-order.dto';
-import { PaginationDto } from '@/common/dto/pagination.dto';
+import { PaginationDto } from '../../../common/dto/pagination.dto';
 import { Order, OrderDocument, OrderStatus, PaymentStatus } from '../schemas/order.schema';
-import { PaginatedResult } from '@/common/interfaces/base.interface';
+import { PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @ApiTags('Orders')
 @Controller('orders')

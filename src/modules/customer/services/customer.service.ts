@@ -1,5 +1,5 @@
 import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
-import { BaseService } from '@/common/services/base.service';
+import { BaseService } from '../../../common/services/base.service';
 import { CustomerRepository } from '../repositories/customer.repository';
 import { CustomerDocument } from '../schemas/customer.schema';
 import { CreateCustomerDto } from '../dto/create-customer.dto';

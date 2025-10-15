@@ -1,11 +1,11 @@
 import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
-import { BaseService } from '@/common/services/base.service';
+import { BaseService } from '../../../common/services/base.service';
 import { ProductRepository } from '../repositories/product.repository';
 import { ProductDocument, StockStatus } from '../schemas/product.schema';
 import { ProductImage, ProductImageDocument } from '../schemas/product-image.schema';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
-import { PaginationOptions, PaginatedResult } from '@/common/interfaces/base.interface';
+import { PaginationOptions, PaginatedResult } from '../../../common/interfaces/base.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 

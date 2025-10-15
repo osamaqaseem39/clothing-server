@@ -1,10 +1,10 @@
 import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
-import { BaseService } from '@/common/services/base.service';
+import { BaseService } from '../../../common/services/base.service';
 import { BrandRepository } from '../repositories/brand.repository';
 import { BrandDocument } from '../schemas/brand.schema';
 import { CreateBrandDto } from '../dto/create-brand.dto';
 import { UpdateBrandDto } from '../dto/update-brand.dto';
-import { PaginationOptions, PaginatedResult } from '@/common/interfaces/base.interface';
+import { PaginationOptions, PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @Injectable()
 export class BrandService extends BaseService<BrandDocument> {

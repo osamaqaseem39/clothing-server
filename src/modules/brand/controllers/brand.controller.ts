@@ -21,9 +21,9 @@ import {
 import { BrandService } from '../services/brand.service';
 import { CreateBrandDto } from '../dto/create-brand.dto';
 import { UpdateBrandDto } from '../dto/update-brand.dto';
-import { PaginationDto } from '@/common/dto/pagination.dto';
+import { PaginationDto } from '../../../common/dto/pagination.dto';
 import { Brand } from '../schemas/brand.schema';
-import { PaginatedResult } from '@/common/interfaces/base.interface';
+import { PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @ApiTags('Brands')
 @Controller('brands')

@@ -22,7 +22,7 @@ import { CouponService } from '../services/coupon.service';
 import { CreateCouponDto } from '../dto/create-coupon.dto';
 import { UpdateCouponDto } from '../dto/update-coupon.dto';
 import { Coupon, CouponDocument } from '../schemas/coupon.schema';
-import { PaginatedResult } from '@/common/interfaces/base.interface';
+import { PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @ApiTags('Coupons')
 @Controller('coupons')

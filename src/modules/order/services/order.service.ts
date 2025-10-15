@@ -1,10 +1,10 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { BaseService } from '@/common/services/base.service';
+import { BaseService } from '../../../common/services/base.service';
 import { OrderRepository } from '../repositories/order.repository';
 import { OrderDocument, OrderStatus, PaymentStatus } from '../schemas/order.schema';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderDto } from '../dto/update-order.dto';
-import { PaginationOptions, PaginatedResult } from '@/common/interfaces/base.interface';
+import { PaginationOptions, PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @Injectable()
 export class OrderService extends BaseService<OrderDocument> {

@@ -21,9 +21,9 @@ import {
 import { CustomerService } from '../services/customer.service';
 import { CreateCustomerDto } from '../dto/create-customer.dto';
 import { UpdateCustomerDto } from '../dto/update-customer.dto';
-import { PaginationDto } from '@/common/dto/pagination.dto';
+import { PaginationDto } from '../../../common/dto/pagination.dto';
 import { Customer } from '../schemas/customer.schema';
-import { PaginatedResult } from '@/common/interfaces/base.interface';
+import { PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @ApiTags('Customers')
 @Controller('customers')

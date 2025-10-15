@@ -23,8 +23,8 @@ import { ShippingService } from '../services/shipping.service';
 import { CreateShippingMethodDto } from '../dto/create-shipping-method.dto';
 import { UpdateShippingMethodDto } from '../dto/update-shipping-method.dto';
 import { ShippingMethod, ShippingMethodDocument } from '../schemas/shipping-method.schema';
-import { PaginationDto } from '@/common/dto/pagination.dto';
-import { PaginatedResult } from '@/common/interfaces/base.interface';
+import { PaginationDto } from '../../../common/dto/pagination.dto';
+import { PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @ApiTags('Shipping')
 @ApiBearerAuth()

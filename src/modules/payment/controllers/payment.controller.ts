@@ -23,8 +23,8 @@ import { PaymentService } from '../services/payment.service';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { UpdatePaymentDto } from '../dto/update-payment.dto';
 import { Payment, PaymentDocument, PaymentStatus } from '../schemas/payment.schema';
-import { PaginationDto } from '@/common/dto/pagination.dto';
-import { PaginatedResult } from '@/common/interfaces/base.interface';
+import { PaginationDto } from '../../../common/dto/pagination.dto';
+import { PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @ApiTags('Payments')
 @ApiBearerAuth()

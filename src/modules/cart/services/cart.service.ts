@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { BaseService } from '@/common/services/base.service';
+import { BaseService } from '../../../common/services/base.service';
 import { CartRepository } from '../repositories/cart.repository';
 import { CartDocument } from '../schemas/cart.schema';
 import { AddToCartDto } from '../dto/add-to-cart.dto';

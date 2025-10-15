@@ -3,7 +3,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import * as express from 'express';
 
 let app: any;
 
@@ -42,6 +43,10 @@ async function bootstrap() {
     // Swagger documentation (toggleable)
     const swaggerConfig = configService.get('swagger');
     if (swaggerConfig.enabled) {
+      // Serve swagger-ui-dist assets under /api/docs so relative links resolve on serverless
+      const swaggerUiAssetsDir = dirname(require.resolve('swagger-ui-dist/swagger-ui.css'));
+      app.use('/api/docs', express.static(swaggerUiAssetsDir));
+
       const config = new DocumentBuilder()
         .setTitle(swaggerConfig.title)
         .setDescription(swaggerConfig.description)
@@ -52,11 +57,12 @@ async function bootstrap() {
       const document = SwaggerModule.createDocument(app, config);
       SwaggerModule.setup('api/docs', app, document, {
         jsonDocumentUrl: 'api/docs-json',
-        // Serve UI assets from CDN to avoid serverless static routing issues
-        customCssUrl: 'https://unpkg.com/swagger-ui-dist@5/swagger-ui.css',
+        // Point to local copies under /api/docs
+        customCssUrl: '/api/docs/swagger-ui.css',
         customJs: [
-          'https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js',
-          'https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
+          '/api/docs/swagger-ui-bundle.js',
+          '/api/docs/swagger-ui-standalone-preset.js',
+          '/api/docs/swagger-ui-init.js',
         ],
         swaggerOptions: {
           persistAuthorization: true,

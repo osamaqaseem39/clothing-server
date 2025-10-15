@@ -47,8 +47,6 @@ export class Admin {
 
 export const AdminSchema = SchemaFactory.createForClass(Admin);
 
-// Index for email lookups
-AdminSchema.index({ email: 1 });
 
 // Index for password reset tokens
 AdminSchema.index({ passwordResetToken: 1 });

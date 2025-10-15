@@ -15,8 +15,9 @@ export const appConfig = registerAs('app', () => ({
 }));
 
 export const swaggerConfig = registerAs('swagger', () => ({
-  title: process.env.SWAGGER_TITLE || 'E-commerce API',
-  description: process.env.SWAGGER_DESCRIPTION || 'Clean e-commerce API built with NestJS and MongoDB',
+  enabled: (process.env.SWAGGER_ENABLED || 'true').toLowerCase() !== 'false',
+  title: process.env.SWAGGER_TITLE || "She's Trends API",
+  description: process.env.SWAGGER_DESCRIPTION || 'API documentation for She\'s Trends',
   version: process.env.SWAGGER_VERSION || '1.0',
 }));
 

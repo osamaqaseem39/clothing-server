@@ -39,17 +39,25 @@ async function bootstrap() {
       maxAge: 600,
     });
 
-    // Swagger documentation
+    // Swagger documentation (toggleable)
     const swaggerConfig = configService.get('swagger');
-    const config = new DocumentBuilder()
-      .setTitle(swaggerConfig.title)
-      .setDescription(swaggerConfig.description)
-      .setVersion(swaggerConfig.version)
-      .addBearerAuth()
-      .build();
+    if (swaggerConfig.enabled) {
+      const config = new DocumentBuilder()
+        .setTitle(swaggerConfig.title)
+        .setDescription(swaggerConfig.description)
+        .setVersion(swaggerConfig.version)
+        .addBearerAuth()
+        .build();
 
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document);
+      const document = SwaggerModule.createDocument(app, config);
+      SwaggerModule.setup('api/docs', app, document, {
+        jsonDocumentUrl: 'api/docs-json',
+        swaggerOptions: {
+          persistAuthorization: true,
+          displayRequestDuration: true,
+        },
+      });
+    }
 
     await app.init();
   }

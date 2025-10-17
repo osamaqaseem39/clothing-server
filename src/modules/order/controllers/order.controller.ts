@@ -6,24 +6,16 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiQuery,
-  ApiBody,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiQuery } from '@nestjs/swagger';
 import { OrderService } from '../services/order.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderDto } from '../dto/update-order.dto';
-import { PaginationDto } from '../../../common/dto/pagination.dto';
 import { Order, OrderDocument, OrderStatus, PaymentStatus } from '../schemas/order.schema';
-import { PaginatedResult } from '../../../common/interfaces/base.interface';
+import { PaginationOptions } from '../../common/dto/pagination.dto';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -32,7 +24,10 @@ export class OrderController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new order' })
+  @ApiOperation({ 
+    summary: 'Create a new order',
+    description: 'Create a new order with items and customer information'
+  })
   @ApiResponse({
     status: 201,
     description: 'Order created successfully',
@@ -44,23 +39,31 @@ export class OrderController {
   })
   @ApiBody({ type: CreateOrderDto })
   async create(@Body() createOrderDto: CreateOrderDto): Promise<OrderDocument> {
-    return await this.orderService.createOrder(createOrderDto);
+    return await this.orderService.create(createOrderDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all orders with pagination' })
+  @ApiOperation({ 
+    summary: 'Get all orders with pagination',
+    description: 'Retrieve a paginated list of all orders'
+  })
   @ApiResponse({
     status: 200,
     description: 'Orders retrieved successfully',
-    type: [Order],
   })
-  @ApiQuery({ type: PaginationDto })
-  async findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResult<OrderDocument>> {
-    return await this.orderService.findAll(paginationDto);
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
+  @ApiQuery({ name: 'sort', required: false, type: String, description: 'Sort field' })
+  @ApiQuery({ name: 'order', required: false, enum: ['asc', 'desc'], description: 'Sort order' })
+  async findAll(@Query() options: PaginationOptions) {
+    return await this.orderService.findAll(options);
   }
 
   @Get('stats')
-  @ApiOperation({ summary: 'Get order statistics' })
+  @ApiOperation({ 
+    summary: 'Get order statistics',
+    description: 'Get order statistics including totals and counts'
+  })
   @ApiResponse({
     status: 200,
     description: 'Order statistics retrieved successfully',
@@ -69,56 +72,24 @@ export class OrderController {
     return await this.orderService.getOrderStats();
   }
 
-  @Get('customer/:customerId')
-  @ApiOperation({ summary: 'Get orders by customer ID' })
+  @Get('cod/pending')
+  @ApiOperation({ 
+    summary: 'Get pending COD orders',
+    description: 'Get all pending Cash on Delivery orders'
+  })
   @ApiResponse({
     status: 200,
-    description: 'Customer orders retrieved successfully',
-    type: [Order],
+    description: 'Pending COD orders retrieved successfully',
   })
-  @ApiParam({ name: 'customerId', description: 'Customer ID' })
-  @ApiQuery({ type: PaginationDto })
-  async findByCustomer(
-    @Param('customerId') customerId: string,
-    @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<OrderDocument>> {
-    return await this.orderService.findByCustomerId(customerId, paginationDto);
-  }
-
-  @Get('status/:status')
-  @ApiOperation({ summary: 'Get orders by status' })
-  @ApiResponse({
-    status: 200,
-    description: 'Orders by status retrieved successfully',
-    type: [Order],
-  })
-  @ApiParam({ name: 'status', enum: OrderStatus, description: 'Order status' })
-  @ApiQuery({ type: PaginationDto })
-  async findByStatus(
-    @Param('status') status: OrderStatus,
-    @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<OrderDocument>> {
-    return await this.orderService.findByStatus(status, paginationDto);
-  }
-
-  @Get('payment/:paymentStatus')
-  @ApiOperation({ summary: 'Get orders by payment status' })
-  @ApiResponse({
-    status: 200,
-    description: 'Orders by payment status retrieved successfully',
-    type: [Order],
-  })
-  @ApiParam({ name: 'paymentStatus', enum: PaymentStatus, description: 'Payment status' })
-  @ApiQuery({ type: PaginationDto })
-  async findByPaymentStatus(
-    @Param('paymentStatus') paymentStatus: PaymentStatus,
-    @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<OrderDocument>> {
-    return await this.orderService.findByPaymentStatus(paymentStatus, paginationDto);
+  async getPendingCODOrders() {
+    return await this.orderService.getCODPendingOrders();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get order by ID' })
+  @ApiOperation({ 
+    summary: 'Get order by ID',
+    description: 'Retrieve a specific order by its ID'
+  })
   @ApiResponse({
     status: 200,
     description: 'Order retrieved successfully',
@@ -134,15 +105,14 @@ export class OrderController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update order' })
+  @ApiOperation({ 
+    summary: 'Update order',
+    description: 'Update order information'
+  })
   @ApiResponse({
     status: 200,
     description: 'Order updated successfully',
     type: Order,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request - validation error',
   })
   @ApiResponse({
     status: 404,
@@ -154,19 +124,18 @@ export class OrderController {
     @Param('id') id: string,
     @Body() updateOrderDto: UpdateOrderDto,
   ): Promise<OrderDocument> {
-    return await this.orderService.updateOrder(id, updateOrderDto);
+    return await this.orderService.update(id, updateOrderDto);
   }
 
   @Patch(':id/status')
-  @ApiOperation({ summary: 'Update order status' })
+  @ApiOperation({ 
+    summary: 'Update order status',
+    description: 'Update the status of an order'
+  })
   @ApiResponse({
     status: 200,
     description: 'Order status updated successfully',
     type: Order,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request - invalid status transition',
   })
   @ApiResponse({
     status: 404,
@@ -194,7 +163,10 @@ export class OrderController {
   }
 
   @Patch(':id/payment-status')
-  @ApiOperation({ summary: 'Update order payment status' })
+  @ApiOperation({ 
+    summary: 'Update order payment status',
+    description: 'Update the payment status of an order'
+  })
   @ApiResponse({
     status: 200,
     description: 'Order payment status updated successfully',
@@ -225,9 +197,36 @@ export class OrderController {
     return await this.orderService.updatePaymentStatus(id, paymentStatus);
   }
 
+  @Post(':id/cod/receive')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Mark COD payment as received',
+    description: 'Mark a Cash on Delivery payment as received upon delivery'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'COD payment marked as received successfully',
+    type: Order,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - not a COD order or already paid',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Order not found',
+  })
+  @ApiParam({ name: 'id', description: 'Order ID' })
+  async markCODPaymentReceived(@Param('id') id: string): Promise<OrderDocument> {
+    return await this.orderService.markCODPaymentReceived(id);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete order' })
+  @ApiOperation({ 
+    summary: 'Delete order',
+    description: 'Delete an order record'
+  })
   @ApiResponse({
     status: 204,
     description: 'Order deleted successfully',
@@ -238,6 +237,6 @@ export class OrderController {
   })
   @ApiParam({ name: 'id', description: 'Order ID' })
   async remove(@Param('id') id: string): Promise<void> {
-    await this.orderService.delete(id);
+    return await this.orderService.remove(id);
   }
-} 
+}

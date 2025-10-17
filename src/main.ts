@@ -90,14 +90,20 @@ export default async (req: any, res: any) => {
     ];
 
     const requestHeaders = (req.headers['access-control-request-headers'] as string) || '*';
+
+    // Always send a valid CORS preflight response. If the Origin is known, echo it
+    // and allow credentials; otherwise allow all without credentials.
     if (origin && allowedOrigins.includes(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Vary', 'Origin');
       res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', requestHeaders);
-      res.setHeader('Access-Control-Max-Age', '600');
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
     }
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', requestHeaders);
+    res.setHeader('Access-Control-Max-Age', '600');
+
     res.statusCode = 204;
     res.end();
     return;

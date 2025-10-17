@@ -6,25 +6,16 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiQuery,
-  ApiBody,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentService } from '../services/payment.service';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { UpdatePaymentDto } from '../dto/update-payment.dto';
-import { Payment, PaymentDocument, PaymentStatus } from '../schemas/payment.schema';
-import { PaginationDto } from '../../../common/dto/pagination.dto';
-import { PaginatedResult } from '../../../common/interfaces/base.interface';
+import { Payment, PaymentDocument } from '../schemas/payment.schema';
+import { PaginationOptions } from '../../common/dto/pagination.dto';
 
 @ApiTags('Payments')
 @ApiBearerAuth()
@@ -68,126 +59,39 @@ export class PaymentController {
   @ApiResponse({
     status: 200,
     description: 'Payments retrieved successfully',
-    type: [Payment],
   })
-  @ApiQuery({ type: PaginationDto })
-  async findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResult<PaymentDocument>> {
-    return await this.paymentService.findAll(paginationDto);
-  }
-
-  @Get('order/:orderId')
-  @ApiOperation({ 
-    summary: 'Get payment by order ID',
-    description: 'Retrieve payment information for a specific order'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Payment retrieved successfully',
-    type: Payment,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Payment not found',
-  })
-  @ApiParam({ name: 'orderId', description: 'Order ID' })
-  async findByOrderId(@Param('orderId') orderId: string): Promise<PaymentDocument> {
-    return await this.paymentService.findByOrderId(orderId);
-  }
-
-  @Get('customer/:customerId')
-  @ApiOperation({ 
-    summary: 'Get payments by customer ID',
-    description: 'Retrieve all payments for a specific customer'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Customer payments retrieved successfully',
-    type: [Payment],
-  })
-  @ApiParam({ name: 'customerId', description: 'Customer ID' })
-  @ApiQuery({ type: PaginationDto })
-  async findByCustomerId(
-    @Param('customerId') customerId: string,
-    @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<PaymentDocument>> {
-    return await this.paymentService.findByCustomerId(customerId, paginationDto);
-  }
-
-  @Get('status/:status')
-  @ApiOperation({ 
-    summary: 'Get payments by status',
-    description: 'Retrieve payments filtered by payment status'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Payments by status retrieved successfully',
-    type: [Payment],
-  })
-  @ApiParam({ 
-    name: 'status', 
-    enum: PaymentStatus, 
-    description: 'Payment status to filter by' 
-  })
-  @ApiQuery({ type: PaginationDto })
-  async findByStatus(
-    @Param('status') status: PaymentStatus,
-    @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<PaymentDocument>> {
-    return await this.paymentService.findByStatus(status, paginationDto);
-  }
-
-  @Get('method/:method')
-  @ApiOperation({ 
-    summary: 'Get payments by payment method',
-    description: 'Retrieve payments filtered by payment method'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Payments by method retrieved successfully',
-    type: [Payment],
-  })
-  @ApiParam({ 
-    name: 'method', 
-    description: 'Payment method to filter by (e.g., credit_card, paypal, bank_transfer)' 
-  })
-  @ApiQuery({ type: PaginationDto })
-  async findByMethod(
-    @Param('method') method: string,
-    @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<PaymentDocument>> {
-    return await this.paymentService.findByMethod(method, paginationDto);
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
+  @ApiQuery({ name: 'sort', required: false, type: String, description: 'Sort field' })
+  @ApiQuery({ name: 'order', required: false, enum: ['asc', 'desc'], description: 'Sort order' })
+  async findAll(@Query() options: PaginationOptions) {
+    return await this.paymentService.findAll(options);
   }
 
   @Get('stats')
   @ApiOperation({ 
     summary: 'Get payment statistics',
-    description: 'Retrieve payment statistics and analytics'
+    description: 'Get payment statistics including totals and counts'
   })
   @ApiResponse({
     status: 200,
     description: 'Payment statistics retrieved successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        totalPayments: { type: 'number', description: 'Total number of payments' },
-        totalAmount: { type: 'number', description: 'Total amount processed' },
-        successfulPayments: { type: 'number', description: 'Number of successful payments' },
-        failedPayments: { type: 'number', description: 'Number of failed payments' },
-        pendingPayments: { type: 'number', description: 'Number of pending payments' },
-        averageAmount: { type: 'number', description: 'Average payment amount' },
-        methodBreakdown: {
-          type: 'object',
-          description: 'Breakdown by payment method'
-        },
-        statusBreakdown: {
-          type: 'object',
-          description: 'Breakdown by payment status'
-        },
-      },
-    },
   })
-  async getPaymentStats() {
+  async getStats() {
     return await this.paymentService.getPaymentStats();
+  }
+
+  @Get('cod/pending')
+  @ApiOperation({ 
+    summary: 'Get pending COD payments',
+    description: 'Get all pending Cash on Delivery payments'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Pending COD payments retrieved successfully',
+  })
+  async getPendingCODPayments() {
+    return await this.paymentService.getCODPendingPayments();
   }
 
   @Get(':id')
@@ -206,22 +110,37 @@ export class PaymentController {
   })
   @ApiParam({ name: 'id', description: 'Payment ID' })
   async findOne(@Param('id') id: string): Promise<PaymentDocument> {
-    return await this.paymentService.findById(id);
+    return await this.paymentService.findOne(id);
+  }
+
+  @Get('order/:orderId')
+  @ApiOperation({ 
+    summary: 'Get payment by order ID',
+    description: 'Retrieve payment for a specific order'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Payment retrieved successfully',
+    type: Payment,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Payment not found for this order',
+  })
+  @ApiParam({ name: 'orderId', description: 'Order ID' })
+  async findByOrderId(@Param('orderId') orderId: string): Promise<PaymentDocument> {
+    return await this.paymentService.findByOrderId(orderId);
   }
 
   @Patch(':id')
   @ApiOperation({ 
     summary: 'Update payment',
-    description: 'Update payment information (limited fields)'
+    description: 'Update payment information'
   })
   @ApiResponse({
     status: 200,
     description: 'Payment updated successfully',
     type: Payment,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request - validation error',
   })
   @ApiResponse({
     status: 404,
@@ -233,91 +152,56 @@ export class PaymentController {
     @Param('id') id: string,
     @Body() updatePaymentDto: UpdatePaymentDto,
   ): Promise<PaymentDocument> {
-    return await this.paymentService.updatePayment(id, updatePaymentDto);
+    return await this.paymentService.update(id, updatePaymentDto);
   }
 
-  @Patch(':id/refund')
+  @Post('cod/:orderId/receive')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ 
-    summary: 'Process payment refund',
-    description: 'Process a refund for a payment'
+    summary: 'Mark COD payment as received',
+    description: 'Mark a Cash on Delivery payment as received upon delivery'
   })
   @ApiResponse({
     status: 200,
-    description: 'Refund processed successfully',
+    description: 'COD payment marked as received successfully',
     type: Payment,
   })
   @ApiResponse({
     status: 400,
-    description: 'Bad request - refund amount exceeds payment amount',
+    description: 'Bad request - not a COD payment or already completed',
   })
   @ApiResponse({
     status: 404,
-    description: 'Payment not found',
+    description: 'Payment not found for this order',
   })
-  @ApiResponse({
-    status: 409,
-    description: 'Payment cannot be refunded',
-  })
-  @ApiParam({ name: 'id', description: 'Payment ID' })
+  @ApiParam({ name: 'orderId', description: 'Order ID' })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        amount: {
-          type: 'number',
-          description: 'Refund amount (optional, defaults to full payment amount)',
-        },
-        reason: {
-          type: 'string',
-          description: 'Reason for refund',
-        },
+        amount: { type: 'number', description: 'Amount received' },
+        notes: { type: 'string', description: 'Optional notes about the payment' },
       },
+      required: ['amount'],
     },
   })
-  async processRefund(
-    @Param('id') id: string,
-    @Body('amount') amount?: number,
-    @Body('reason') reason?: string,
+  async markCODPaymentReceived(
+    @Param('orderId') orderId: string,
+    @Body('amount') amount: number,
+    @Body('notes') notes?: string,
   ): Promise<PaymentDocument> {
-    return await this.paymentService.processRefund(id, amount, reason);
-  }
-
-  @Patch(':id/capture')
-  @ApiOperation({ 
-    summary: 'Capture payment',
-    description: 'Capture a pending payment (for pre-authorized payments)'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Payment captured successfully',
-    type: Payment,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request - payment cannot be captured',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Payment not found',
-  })
-  @ApiParam({ name: 'id', description: 'Payment ID' })
-  async capturePayment(@Param('id') id: string): Promise<PaymentDocument> {
-    return await this.paymentService.capturePayment(id);
+    return await this.paymentService.markCODPaymentReceived(orderId, amount, notes);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ 
     summary: 'Delete payment',
-    description: 'Delete a payment (only for failed or cancelled payments)'
+    description: 'Delete a payment record'
   })
   @ApiResponse({
     status: 204,
     description: 'Payment deleted successfully',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request - payment cannot be deleted',
   })
   @ApiResponse({
     status: 404,
@@ -325,6 +209,6 @@ export class PaymentController {
   })
   @ApiParam({ name: 'id', description: 'Payment ID' })
   async remove(@Param('id') id: string): Promise<void> {
-    await this.paymentService.delete(id);
+    return await this.paymentService.remove(id);
   }
-} 
+}

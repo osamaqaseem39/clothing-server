@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { OrderRepository } from '../repositories/order.repository';
 import { OrderDocument, OrderStatus, PaymentStatus } from '../schemas/order.schema';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderDto } from '../dto/update-order.dto';
-import { BaseService } from '../../common/services/base.service';
+import { BaseService } from '../../../common/services/base.service';
 
 @Injectable()
 export class OrderService extends BaseService<OrderDocument> {
@@ -55,10 +55,10 @@ export class OrderService extends BaseService<OrderDocument> {
   }
 
   async getCODPendingOrders(): Promise<OrderDocument[]> {
-    return await this.orderRepository.find({
+    return await (this as any).orderRepository.model.find({
       paymentMethod: { $in: ['cash_on_delivery', 'cod'] },
       paymentStatus: PaymentStatus.UNPAID
-    });
+    }).exec();
   }
 
   async markCODPaymentReceived(orderId: string): Promise<OrderDocument> {

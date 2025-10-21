@@ -27,7 +27,39 @@ export class Customer {
 
   @ApiProperty({ description: 'Hashed password' })
   @Prop({ required: true })
-  passwordHash: string;
+  password: string;
+
+  @ApiProperty({ description: 'Date of birth' })
+  @Prop()
+  dateOfBirth?: Date;
+
+  @ApiProperty({ description: 'Whether customer is active' })
+  @Prop({ default: true })
+  isActive: boolean;
+
+  @ApiProperty({ description: 'Whether email is verified' })
+  @Prop({ default: false })
+  emailVerified: boolean;
+
+  @ApiProperty({ description: 'Last login timestamp' })
+  @Prop()
+  lastLoginAt?: Date;
+
+  @ApiProperty({ description: 'Password reset token' })
+  @Prop()
+  resetPasswordToken?: string;
+
+  @ApiProperty({ description: 'Password reset token expiry' })
+  @Prop()
+  resetPasswordExpires?: Date;
+
+  @ApiProperty({ description: 'Email verification token' })
+  @Prop()
+  emailVerificationToken?: string;
+
+  @ApiProperty({ description: 'Email verification token expiry' })
+  @Prop()
+  emailVerificationExpiry?: Date;
 
   @ApiProperty({ description: 'Billing address' })
   @Prop({

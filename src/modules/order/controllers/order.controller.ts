@@ -15,7 +15,7 @@ import { OrderService } from '../services/order.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderDto } from '../dto/update-order.dto';
 import { Order, OrderDocument, OrderStatus, PaymentStatus } from '../schemas/order.schema';
-import { PaginationOptions } from '../../common/dto/pagination.dto';
+import { PaginationOptions } from '../../../common/interfaces/base.interface';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -237,6 +237,6 @@ export class OrderController {
   })
   @ApiParam({ name: 'id', description: 'Order ID' })
   async remove(@Param('id') id: string): Promise<void> {
-    return await this.orderService.remove(id);
+    return await this.orderService.delete(id);
   }
 }

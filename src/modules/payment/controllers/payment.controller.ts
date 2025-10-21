@@ -15,7 +15,7 @@ import { PaymentService } from '../services/payment.service';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { UpdatePaymentDto } from '../dto/update-payment.dto';
 import { Payment, PaymentDocument } from '../schemas/payment.schema';
-import { PaginationOptions } from '../../common/dto/pagination.dto';
+import { PaginationOptions } from '../../../common/interfaces/base.interface';
 
 @ApiTags('Payments')
 @ApiBearerAuth()

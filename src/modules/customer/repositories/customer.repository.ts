@@ -16,10 +16,10 @@ export class CustomerRepository extends BaseRepository<CustomerDocument> {
     return await this.customerModel.findOne({ email: email.toLowerCase() }).exec();
   }
 
-  async findByEmailAndPassword(email: string, passwordHash: string): Promise<CustomerDocument | null> {
+  async findByEmailAndPassword(email: string, password: string): Promise<CustomerDocument | null> {
     return await this.customerModel.findOne({
       email: email.toLowerCase(),
-      passwordHash,
+      password,
     }).exec();
   }
 
@@ -32,5 +32,9 @@ export class CustomerRepository extends BaseRepository<CustomerDocument> {
         ],
       })
       .exec();
+  }
+
+  async findByResetToken(token: string): Promise<CustomerDocument | null> {
+    return await this.customerModel.findOne({ resetPasswordToken: token }).exec();
   }
 } 

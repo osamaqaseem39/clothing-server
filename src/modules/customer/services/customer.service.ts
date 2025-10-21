@@ -62,7 +62,7 @@ export class CustomerService extends BaseService<CustomerDocument> {
       throw new BadRequestException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, customer.passwordHash);
+    const isPasswordValid = await bcrypt.compare(password, customer.password);
     if (!isPasswordValid) {
       throw new BadRequestException('Invalid credentials');
     }
@@ -73,7 +73,7 @@ export class CustomerService extends BaseService<CustomerDocument> {
   async updatePassword(id: string, currentPassword: string, newPassword: string): Promise<void> {
     const customer = await this.findById(id);
     
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, customer.passwordHash);
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, customer.password);
     if (!isCurrentPasswordValid) {
       throw new BadRequestException('Current password is incorrect');
     }
@@ -81,10 +81,14 @@ export class CustomerService extends BaseService<CustomerDocument> {
     const saltRounds = 10;
     const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
 
-    await this.customerRepository.update(id, { passwordHash: newPasswordHash });
+    await this.customerRepository.update(id, { password: newPasswordHash });
   }
 
   async findByName(firstName: string, lastName: string): Promise<CustomerDocument[]> {
     return await this.customerRepository.findByName(firstName, lastName);
+  }
+
+  async findByResetToken(token: string): Promise<CustomerDocument | null> {
+    return await this.customerRepository.findByResetToken(token);
   }
 } 

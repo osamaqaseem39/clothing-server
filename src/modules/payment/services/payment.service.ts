@@ -4,8 +4,7 @@ import { Model } from 'mongoose';
 import { Payment, PaymentDocument, PaymentStatus } from '../schemas/payment.schema';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { UpdatePaymentDto } from '../dto/update-payment.dto';
-import { PaginationOptions } from '../../common/dto/pagination.dto';
-import { PaginatedResult } from '../../common/interfaces/base.interface';
+import { PaginationOptions, PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @Injectable()
 export class PaymentService {
@@ -109,9 +108,11 @@ export class PaymentService {
 
     // Update payment status to completed
     payment.status = PaymentStatus.COMPLETED;
-    payment.paymentDate = new Date();
+    // Persist optional notes via metadata
     if (notes) {
-      payment.notes = notes;
+      const metadata = payment.metadata || {};
+      metadata.codNotes = notes;
+      payment.metadata = metadata;
     }
 
     return await payment.save();

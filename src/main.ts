@@ -26,18 +26,46 @@ async function bootstrap() {
     app.useStaticAssets(join(__dirname, '..', 'public'));
 
     // CORS
+    const allowedOrigins = [
+      'https://clothing-dashboard-seven.vercel.app',
+      'http://localhost:3000',
+    ];
+
     app.enableCors({
-      origin: [
-        'https://clothing-dashboard-seven.vercel.app',
-        'http://localhost:3000',
-      ],
+      origin: (origin, callback) => {
+        // Allow server-to-server or tools without an Origin
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(null, false);
+      },
       credentials: true,
       methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-      allowedHeaders: '*',
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With',
+        'Accept',
+        'Origin',
+        'Content-Range',
+        'X-Total-Count',
+      ],
       exposedHeaders: ['Content-Range', 'X-Total-Count'],
       preflightContinue: false,
       optionsSuccessStatus: 204,
       maxAge: 600,
+    });
+
+    // Ensure ACAO headers are present even on error responses
+    app.use((req: any, res: any, next: any) => {
+      const origin: string | undefined = req.headers?.origin;
+      if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+      } else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+      }
+      res.setHeader('Vary', 'Origin');
+      next();
     });
 
     // Swagger documentation (toggleable)
@@ -84,16 +112,9 @@ export default async (req: any, res: any) => {
   // Handle CORS preflight explicitly for Vercel functions
   if (req.method === 'OPTIONS') {
     const origin = req.headers?.origin as string | undefined;
-    const allowedOrigins = [
-      'https://clothing-dashboard-seven.vercel.app',
-      'http://localhost:3000',
-    ];
+    const requestHeaders = (req.headers['access-control-request-headers'] as string) || 'Content-Type,Authorization';
 
-    const requestHeaders = (req.headers['access-control-request-headers'] as string) || '*';
-
-    // Always send a valid CORS preflight response. If the Origin is known, echo it
-    // and allow credentials; otherwise allow all without credentials.
-    if (origin && allowedOrigins.includes(origin)) {
+    if (origin && ['https://clothing-dashboard-seven.vercel.app', 'http://localhost:3000'].includes(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
     } else {

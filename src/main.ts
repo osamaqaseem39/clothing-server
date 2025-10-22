@@ -30,6 +30,9 @@ async function bootstrap() {
   if (!app) {
     app = await NestFactory.create(AppModule);
 
+    // Ensure all routes are served under /api (matches client baseURL and Vercel path)
+    app.setGlobalPrefix('api');
+
     // Get config service
     const configService = app.get(ConfigService);
 
@@ -80,8 +83,8 @@ async function bootstrap() {
       next();
     });
 
-    // Health check endpoint to verify API is working
-    app.get('/api/health', (req: any, res: any) => {
+    // Health check endpoint to verify API is working (respects global '/api' prefix)
+    app.get('/health', (req: any, res: any) => {
       res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
@@ -107,8 +110,9 @@ async function bootstrap() {
         .build();
 
       const document = SwaggerModule.createDocument(app, config);
-      SwaggerModule.setup('api/docs', app, document, {
-        jsonDocumentUrl: 'api/docs-json',
+      // Mount at '/docs' so with global prefix it resolves to '/api/docs'
+      SwaggerModule.setup('docs', app, document, {
+        jsonDocumentUrl: 'docs-json',
         // Point to local copies under /api/docs-assets
         customCssUrl: '/api/docs-assets/swagger-ui.css',
         customJs: [
@@ -124,6 +128,7 @@ async function bootstrap() {
       // Ensure trailing slash so relative assets (e.g., ./swagger-ui.css) resolve correctly
       const httpAdapter = app.getHttpAdapter().getInstance();
       httpAdapter.get('/api/docs', (_req: any, res: any) => res.redirect('/api/docs/'));
+      httpAdapter.get('/docs', (_req: any, res: any) => res.redirect('/docs/'));
     }
 
     await app.init();

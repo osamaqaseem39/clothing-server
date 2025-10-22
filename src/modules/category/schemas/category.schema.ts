@@ -57,14 +57,6 @@ export class Category {
   @Prop()
   metaKeywords?: string[];
 
-  @ApiProperty({ description: 'Category icon' })
-  @Prop()
-  icon?: string;
-
-  @ApiProperty({ description: 'Category color for UI' })
-  @Prop()
-  color?: string;
-
   @ApiProperty({ description: 'Creation timestamp' })
   createdAt: Date;
 

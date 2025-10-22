@@ -7,6 +7,24 @@ import { join, dirname } from 'path';
 import * as express from 'express';
 
 let app: any;
+const allowedOrigins = [
+  'https://clothing-dashboard-seven.vercel.app',
+  'http://localhost:3000',
+];
+
+function setCorsHeaders(res: any, origin?: string) {
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Content-Range, X-Total-Count');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Range, X-Total-Count');
+  res.setHeader('Access-Control-Max-Age', '600');
+}
 
 async function bootstrap() {
   if (!app) {
@@ -26,11 +44,6 @@ async function bootstrap() {
     app.useStaticAssets(join(__dirname, '..', 'public'));
 
     // CORS
-    const allowedOrigins = [
-      'https://clothing-dashboard-seven.vercel.app',
-      'http://localhost:3000',
-    ];
-
     app.enableCors({
       origin: (origin, callback) => {
         // Allow server-to-server or tools without an Origin
@@ -55,16 +68,15 @@ async function bootstrap() {
       maxAge: 600,
     });
 
-    // Ensure ACAO headers are present even on error responses
+    // Single CORS middleware for all environments (handles preflight and ensures headers)
     app.use((req: any, res: any, next: any) => {
       const origin: string | undefined = req.headers?.origin;
-      if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-      } else {
-        res.setHeader('Access-Control-Allow-Origin', '*');
+      setCorsHeaders(res, origin);
+      if (req.method === 'OPTIONS') {
+        res.statusCode = 204;
+        res.end();
+        return;
       }
-      res.setHeader('Vary', 'Origin');
       next();
     });
 
@@ -107,28 +119,8 @@ async function bootstrap() {
   return app;
 }
 
-// For Vercel deployment
+// For Vercel deployment (uses same unified CORS handling)
 export default async (req: any, res: any) => {
-  // Handle CORS preflight explicitly for Vercel functions
-  if (req.method === 'OPTIONS') {
-    const origin = req.headers?.origin as string | undefined;
-    const requestHeaders = (req.headers['access-control-request-headers'] as string) || 'Content-Type,Authorization';
-
-    if (origin && ['https://clothing-dashboard-seven.vercel.app', 'http://localhost:3000'].includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-    } else {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-    }
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', requestHeaders);
-    res.setHeader('Access-Control-Max-Age', '600');
-
-    res.statusCode = 204;
-    res.end();
-    return;
-  }
   const nestApp = await bootstrap();
   return nestApp.getHttpAdapter().getInstance()(req, res);
 };

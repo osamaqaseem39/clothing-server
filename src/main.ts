@@ -80,9 +80,21 @@ async function bootstrap() {
       next();
     });
 
-    // Swagger documentation (toggleable)
+    // Health check endpoint to verify API is working
+    app.get('/api/health', (req: any, res: any) => {
+      res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        version: '1.0.0'
+      });
+    });
+
+    // Swagger documentation (always enabled for API verification)
     const swaggerConfig = configService.get('swagger');
-    if (swaggerConfig.enabled) {
+    // Force enable Swagger in production for API verification
+    if (swaggerConfig.enabled || process.env.NODE_ENV === 'production') {
       // Serve swagger-ui-dist assets under a separate prefix to avoid shadowing /api/docs
       const swaggerUiAssetsDir = dirname(require.resolve('swagger-ui-dist/swagger-ui.css'));
       app.use('/api/docs-assets', express.static(swaggerUiAssetsDir));

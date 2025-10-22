@@ -45,6 +45,34 @@ export class Brand {
   @Prop({ default: 0 })
   sortOrder: number;
 
+  @ApiProperty({ description: 'Main company name' })
+  @Prop({ type: String, trim: true })
+  mainCompany?: string;
+
+  @ApiProperty({ enum: ['main', 'sub'], description: 'Brand level' })
+  @Prop({ enum: ['main', 'sub'], default: 'main' })
+  level: 'main' | 'sub';
+
+  @ApiProperty({ description: 'Industry type' })
+  @Prop({ type: String, trim: true })
+  industry?: string;
+
+  @ApiProperty({ description: 'Brand colors' })
+  @Prop({
+    type: {
+      primary: { type: String },
+      secondary: { type: String }
+    }
+  })
+  colors?: {
+    primary: string;
+    secondary: string;
+  };
+
+  @ApiProperty({ description: 'Whether brand is featured' })
+  @Prop({ default: false })
+  isFeatured: boolean;
+
   @ApiProperty({ description: 'Brand metadata' })
   @Prop({ type: Object })
   metadata?: Record<string, any>;

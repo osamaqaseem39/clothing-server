@@ -113,8 +113,8 @@ export class Product {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Brand' })
   brand?: string;
 
-  @ApiProperty({ description: 'Product attributes' })
-  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'ProductAttribute' })
+  @ApiProperty({ description: 'Product attributes as array of strings' })
+  @Prop({ type: [String], default: [] })
   attributes: string[];
 
   @ApiProperty({ description: 'Product variations' })
@@ -222,6 +222,89 @@ export class Product {
   @Prop({ type: [String] })
   availableSizes?: string[];
 
+  // UI-specific fields
+  @ApiProperty({ description: 'Original price before sale' })
+  @Prop({ min: 0 })
+  originalPrice?: number;
+
+  @ApiProperty({ description: 'Product rating (0-5)' })
+  @Prop({ min: 0, max: 5 })
+  rating?: number;
+
+  @ApiProperty({ description: 'Number of reviews' })
+  @Prop({ min: 0 })
+  reviews?: number;
+
+  @ApiProperty({ description: 'Is this a new product' })
+  @Prop({ default: false })
+  isNew?: boolean;
+
+  @ApiProperty({ description: 'Is this product on sale' })
+  @Prop({ default: false })
+  isSale?: boolean;
+
+  @ApiProperty({ description: 'Product features list' })
+  @Prop({ type: [String], default: [] })
+  features?: string[];
+
+  @ApiProperty({ description: 'Available colors' })
+  @Prop({ type: [String], default: [] })
+  colors?: string[];
+
+  @ApiProperty({ description: 'Stock availability status' })
+  @Prop({ default: true })
+  inStock?: boolean;
+
+  @ApiProperty({ description: 'Stock count for display' })
+  @Prop({ min: 0 })
+  stockCount?: number;
+
+  @ApiProperty({ description: 'Product weight for shipping' })
+  @Prop({ min: 0 })
+  shippingWeight?: number;
+
+  @ApiProperty({ description: 'Product dimensions for shipping' })
+  @Prop({
+    type: {
+      length: { type: Number, min: 0 },
+      width: { type: Number, min: 0 },
+      height: { type: Number, min: 0 },
+    },
+  })
+  shippingDimensions?: {
+    length: number;
+    width: number;
+    height: number;
+  };
+
+  @ApiProperty({ description: 'Product is active' })
+  @Prop({ default: true })
+  isActive?: boolean;
+
+  @ApiProperty({ description: 'SEO data' })
+  @Prop({
+    type: {
+      title: { type: String },
+      description: { type: String },
+      keywords: { type: [String] },
+      slug: { type: String },
+      canonicalUrl: { type: String },
+      ogImage: { type: String },
+      noIndex: { type: Boolean, default: false },
+      noFollow: { type: Boolean, default: false },
+    },
+  })
+  seo?: {
+    title?: string;
+    description?: string;
+    keywords?: string[];
+    slug?: string;
+    canonicalUrl?: string;
+    ogImage?: string;
+    noIndex: boolean;
+    noFollow: boolean;
+  };
+
   @ApiProperty({ description: 'Creation timestamp' })
   createdAt: Date;
 
@@ -256,4 +339,17 @@ ProductSchema.index({ bodyType: 1 });
 ProductSchema.index({ isLimitedEdition: 1 });
 ProductSchema.index({ isCustomMade: 1 });
 ProductSchema.index({ sizeChart: 1 });
-ProductSchema.index({ availableSizes: 1 }); 
+ProductSchema.index({ availableSizes: 1 });
+
+// UI-specific indexes
+ProductSchema.index({ originalPrice: 1 });
+ProductSchema.index({ rating: 1 });
+ProductSchema.index({ reviews: 1 });
+ProductSchema.index({ isNew: 1 });
+ProductSchema.index({ isSale: 1 });
+ProductSchema.index({ features: 1 });
+ProductSchema.index({ colors: 1 });
+ProductSchema.index({ inStock: 1 });
+ProductSchema.index({ stockCount: 1 });
+ProductSchema.index({ isActive: 1 });
+ProductSchema.index({ attributes: 1 }); 

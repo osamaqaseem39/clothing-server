@@ -25,13 +25,32 @@ async function bootstrap() {
     // Static assets from /public
     app.useStaticAssets(join(__dirname, '..', 'public'));
 
-    // Simple CORS configuration
+    // CORS configuration for production
     app.enableCors({
-      origin: true, // Allow all origins for development
+      origin: (origin, callback) => {
+        const allowedOrigins = [
+          'https://clothing-website-lovat.vercel.app',
+          'https://clothing-dashboard-seven.vercel.app',
+          'http://localhost:3000',
+          'http://localhost:3001'
+        ];
+        
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       credentials: true,
       methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
       exposedHeaders: ['Content-Range', 'X-Total-Count'],
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
+      maxAge: 600,
     });
 
     // Ensure all routes are served under /api (matches client baseURL and Vercel path)
@@ -70,6 +89,28 @@ async function bootstrap() {
 
 // For Vercel deployment (uses same unified CORS handling)
 export default async (req: any, res: any) => {
+  // Handle CORS preflight requests explicitly for Vercel
+  if (req.method === 'OPTIONS') {
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+      'https://clothing-website-lovat.vercel.app',
+      'https://clothing-dashboard-seven.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:3001'
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '600');
+    res.status(204).end();
+    return;
+  }
+
   const nestApp = await bootstrap();
   return nestApp.getHttpAdapter().getInstance()(req, res);
 };

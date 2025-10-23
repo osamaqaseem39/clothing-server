@@ -1,19 +1,14 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AppModule } from './app.module';
-import { ConfigService } from '@nestjs/config';
-import { join, dirname } from 'path';
-import * as express from 'express';
+// Vercel serverless function entry point
+const { NestFactory } = require('@nestjs/core');
+const { AppModule } = require('../dist/app.module');
+const { ValidationPipe } = require('@nestjs/common');
+const { join } = require('path');
 
-let app: any;
+let app;
 
 async function bootstrap() {
   if (!app) {
     app = await NestFactory.create(AppModule);
-
-    // Get config service
-    const configService = app.get(ConfigService);
 
     // Global validation pipe
     app.useGlobalPipes(new ValidationPipe({
@@ -57,7 +52,7 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
 
     // Health check endpoint
-    app.get('/health', (req: any, res: any) => {
+    app.get('/health', (req, res) => {
       res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
@@ -67,36 +62,12 @@ async function bootstrap() {
       });
     });
 
-
-    // Swagger documentation
-    const swaggerConfig = configService.get('swagger');
-    if (swaggerConfig.enabled || process.env.NODE_ENV === 'production') {
-      const config = new DocumentBuilder()
-        .setTitle(swaggerConfig.title)
-        .setDescription(swaggerConfig.description)
-        .setVersion(swaggerConfig.version)
-        .addBearerAuth()
-        .build();
-
-      const document = SwaggerModule.createDocument(app, config);
-      SwaggerModule.setup('api/docs', app, document);
-    }
-
     await app.init();
   }
   return app;
 }
 
-// This file is for local development only
-// Vercel deployment uses api/index.js
-
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  bootstrap().then(async (app) => {
-    const configService = app.get(ConfigService);
-    const port = configService.get('app.port');
-    await app.listen(port);
-    console.log(`🚀 Application is running on: http://localhost:${port}`);
-    console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
-  });
-} 
+module.exports = async (req, res) => {
+  const nestApp = await bootstrap();
+  return nestApp.getHttpAdapter().getInstance()(req, res);
+};

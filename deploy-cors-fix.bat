@@ -17,5 +17,7 @@ echo 📝 Next steps:
 echo 1. Wait a few minutes for the deployment to propagate
 echo 2. Test your frontend application
 echo 3. Check the browser console for any remaining CORS errors
+echo.
+echo ℹ️  Note: Using package.json Vercel configuration instead of custom vercel.json
 
 pause

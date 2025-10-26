@@ -53,19 +53,11 @@ async function bootstrap() {
       maxAge: 600,
     });
 
-    // Ensure all routes are served under /api (matches client baseURL and Vercel path)
-    app.setGlobalPrefix('api');
+    // Set global prefix for local development
+    if (process.env.NODE_ENV !== 'production') {
+      app.setGlobalPrefix('api');
+    }
 
-    // Health check endpoint
-    app.get('/health', (req: any, res: any) => {
-      res.json({
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        environment: process.env.NODE_ENV || 'development',
-        version: '1.0.0'
-      });
-    });
 
 
     // Swagger documentation

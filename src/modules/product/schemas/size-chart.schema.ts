@@ -56,6 +56,14 @@ export class SizeChart {
     };
   }>;
 
+  @ApiProperty({ description: 'Size chart image URL' })
+  @Prop()
+  imageUrl?: string;
+
+  @ApiProperty({ description: 'Size chart image alt text' })
+  @Prop()
+  imageAltText?: string;
+
   @ApiProperty({ description: 'Is this size chart active' })
   @Prop({ default: true })
   isActive: boolean;

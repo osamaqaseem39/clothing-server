@@ -53,10 +53,8 @@ async function bootstrap() {
       maxAge: 600,
     });
 
-    // Set global prefix for local development
-    if (process.env.NODE_ENV !== 'production') {
-      app.setGlobalPrefix('api');
-    }
+    // Set global prefix for all environments
+    app.setGlobalPrefix('api');
 
 
 

@@ -21,8 +21,17 @@ export class PaginationDto {
   @IsOptional()
   sort?: string;
 
+  @ApiPropertyOptional({ description: 'Field to sort by (alias for sort)' })
+  @IsOptional()
+  sortBy?: string;
+
   @ApiPropertyOptional({ enum: ['asc', 'desc'], default: 'desc' })
   @IsOptional()
   @IsIn(['asc', 'desc'])
   order?: 'asc' | 'desc' = 'desc';
+
+  @ApiPropertyOptional({ enum: ['asc', 'desc'], description: 'Sort order (alias for order)' })
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc' = 'desc';
 } 

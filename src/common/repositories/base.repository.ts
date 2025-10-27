@@ -15,10 +15,15 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
   }
 
   async findAll(options?: PaginationOptions): Promise<PaginatedResult<T>> {
-    const { page = 1, limit = 10, sort, order = 'desc' } = options || {};
+    const { page = 1, limit = 10, sort, sortBy, order = 'desc', sortOrder } = options || {};
+    
+    // Use sortBy if provided, otherwise use sort
+    const sortField = sortBy || sort;
+    // Use sortOrder if provided, otherwise use order
+    const orderBy = sortOrder || order;
     
     const skip = (page - 1) * limit;
-    const sortOption = sort ? { [sort]: order === 'desc' ? -1 : 1 } : { createdAt: -1 } as any;
+    const sortOption = sortField ? { [sortField]: orderBy === 'desc' ? -1 : 1 } : { createdAt: -1 } as any;
     
     const [data, total] = await Promise.all([
       this.model.find().sort(sortOption).skip(skip).limit(limit).exec(),

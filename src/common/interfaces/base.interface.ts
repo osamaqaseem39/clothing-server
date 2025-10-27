@@ -12,7 +12,9 @@ export interface PaginationOptions {
   page?: number;
   limit?: number;
   sort?: string;
+  sortBy?: string;
   order?: 'asc' | 'desc';
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PaginatedResult<T> {

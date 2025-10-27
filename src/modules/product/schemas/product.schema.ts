@@ -20,6 +20,7 @@ export enum StockStatus {
 export enum ProductStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
+  ARCHIVED = 'archived',
 }
 
 @Schema({ timestamps: true })
@@ -217,6 +218,10 @@ export class Product {
   @ApiProperty({ description: 'Size chart ID for this product' })
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'SizeChart' })
   sizeChart?: string;
+
+  @ApiProperty({ description: 'Size chart image URL (direct)' })
+  @Prop({ type: String })
+  sizeChartImageUrl?: string;
 
   @ApiProperty({ description: 'Available sizes for this product' })
   @Prop({ type: [String] })

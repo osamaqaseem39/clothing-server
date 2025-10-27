@@ -3,6 +3,7 @@ import { BaseService } from '../../../common/services/base.service';
 import { ProductRepository } from '../repositories/product.repository';
 import { ProductDocument, StockStatus } from '../schemas/product.schema';
 import { ProductImage, ProductImageDocument } from '../schemas/product-image.schema';
+import { ProductVariation, ProductVariationDocument } from '../schemas/product-variation.schema';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { PaginationOptions, PaginatedResult } from '../../../common/interfaces/base.interface';
@@ -14,6 +15,7 @@ export class ProductService extends BaseService<ProductDocument> {
   constructor(
     private readonly productRepository: ProductRepository,
     @InjectModel(ProductImage.name) private readonly productImageModel: Model<ProductImageDocument>,
+    @InjectModel(ProductVariation.name) private readonly productVariationModel: Model<ProductVariationDocument>,
   ) {
     super(productRepository);
   }
@@ -58,13 +60,44 @@ export class ProductService extends BaseService<ProductDocument> {
       imageIds = imageDocuments.map(img => img._id.toString());
     }
 
+    // Extract variations if provided
+    const variationsData = createProductDto.variations || [];
+    delete createProductDto.variations;
+
     // Create product data with image IDs
     const productData = {
       ...createProductDto,
       images: imageIds,
     };
 
-    return await this.productRepository.create(productData);
+    const product = await this.productRepository.create(productData);
+
+    // Create variations if provided (WooCommerce-style: create base product, then add variations)
+    let variationIds: string[] = [];
+    if (variationsData && variationsData.length > 0) {
+      const variationDocuments = await Promise.all(
+        variationsData.map(async (variationData) => {
+          const variation = new this.productVariationModel({
+            productId: product._id,
+            sku: variationData.sku,
+            price: variationData.price,
+            salePrice: variationData.comparePrice || variationData.salePrice,
+            stockQuantity: variationData.stockQuantity || 0,
+            stockStatus: variationData.stockStatus || 'outofstock',
+            attributes: variationData.attributes || [],
+          });
+          return await variation.save();
+        })
+      );
+      variationIds = variationDocuments.map(v => v._id.toString());
+    }
+
+    // Update product with variation IDs
+    if (variationIds.length > 0) {
+      return await this.productRepository.update(product._id.toString(), { variations: variationIds });
+    }
+
+    return product;
   }
 
   async updateProduct(id: string, updateProductDto: UpdateProductDto): Promise<ProductDocument> {
@@ -119,13 +152,59 @@ export class ProductService extends BaseService<ProductDocument> {
       imageIds = imageDocuments.map(img => img._id.toString());
     }
 
+    // Extract variations if provided
+    const variationsData = updateProductDto.variations || [];
+    delete updateProductDto.variations;
+
     // Create update data with image IDs if provided
     const updateData = {
       ...updateProductDto,
       ...(imageIds && { images: imageIds }),
     };
 
-    return await this.productRepository.update(id, updateData);
+    // Update the base product
+    const updatedProduct = await this.productRepository.update(id, updateData);
+
+    // Handle variations if provided
+    if (variationsData && variationsData.length > 0) {
+      // Delete existing variations for this product (optional, depending on requirements)
+      // await this.productVariationModel.deleteMany({ productId: id });
+
+      // Create new variations
+      const variationDocuments = await Promise.all(
+        variationsData.map(async (variationData) => {
+          // If variation has an ID, update it, otherwise create new
+          if (variationData._id) {
+            return await this.productVariationModel.findByIdAndUpdate(
+              variationData._id,
+              {
+                ...variationData,
+                productId: id,
+              },
+              { new: true }
+            );
+          } else {
+            const variation = new this.productVariationModel({
+              productId: id,
+              sku: variationData.sku,
+              price: variationData.price,
+              salePrice: variationData.comparePrice || variationData.salePrice,
+              stockQuantity: variationData.stockQuantity || 0,
+              stockStatus: variationData.stockStatus || 'outofstock',
+              attributes: variationData.attributes || [],
+            });
+            return await variation.save();
+          }
+        })
+      );
+      
+      const variationIds = variationDocuments.map(v => v._id.toString());
+      
+      // Update product with variation IDs
+      return await this.productRepository.update(id, { variations: variationIds });
+    }
+
+    return updatedProduct;
   }
 
   async findBySlug(slug: string): Promise<ProductDocument> {

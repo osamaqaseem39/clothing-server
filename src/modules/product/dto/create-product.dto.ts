@@ -112,6 +112,11 @@ export class CreateProductDto {
     position: number;
   }[];
 
+  @ApiPropertyOptional({ description: 'Product variations' })
+  @IsOptional()
+  @IsArray()
+  variations?: any[]; // Will be processed to create separate ProductVariation documents
+
   // Pakistani Clothing Specific Fields
   @ApiPropertyOptional({ description: 'Fabric type (e.g., Cotton, Silk, Lawn, Chiffon)' })
   @IsOptional()

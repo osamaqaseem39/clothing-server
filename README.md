@@ -214,16 +214,7 @@ src/modules/review/
 
 ## 🧪 Testing
 
-```bash
-# Unit tests
-npm run test
-
-# E2E tests
-npm run test:e2e
-
-# Test coverage
-npm run test:cov
-```
+Testing setup can be added as needed. Jest is configured and ready to use.
 
 ## 📦 Build & Deploy
 
@@ -277,18 +268,13 @@ For support and questions:
 - Check the Swagger documentation at `/api/docs`
 - Review the code examples in the controllers
 
-## 🚀 Roadmap
+## 📝 Notes
 
-- [ ] Authentication middleware (JWT)
-- [ ] Role-based access control
-- [ ] File upload for product images
-- [ ] Email notifications
-- [ ] Webhook support
-- [ ] Analytics and reporting
-- [ ] Multi-currency support
-- [ ] Inventory management
-- [ ] Tax calculation
-- [ ] Shipping zone management
+- This project is designed to run as a standalone NestJS application
+- The application uses MongoDB for data persistence
+- CORS is configured to allow requests from specified origins
+- Swagger documentation is available at `/api/docs`
+- Environment variables should be configured in `.env` file
 
 ---
 

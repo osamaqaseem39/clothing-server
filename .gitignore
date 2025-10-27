@@ -25,6 +25,10 @@ pnpm-debug.log*
 .idea/
 .vscode/
 
+# Vercel
+.vercel
+.vercelignore
+
 # Misc
 .eslintcache
 .turbo/

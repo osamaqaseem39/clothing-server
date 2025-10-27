@@ -218,6 +218,7 @@ Testing setup can be added as needed. Jest is configured and ready to use.
 
 ## 📦 Build & Deploy
 
+### Local Development
 ```bash
 # Build the application
 npm run build
@@ -225,9 +226,30 @@ npm run build
 # Start production server
 npm run start:prod
 
-# Using Docker
+# Development mode
+npm run start:dev
+```
+
+### Vercel Deployment
+The project is configured for Vercel serverless deployment:
+
+1. **Automatic Deployment**: Push to main branch triggers deployment
+2. **Manual Deployment**: Use Vercel CLI
+   ```bash
+   vercel --prod
+   ```
+3. **Environment Variables**: Set in Vercel dashboard:
+   - `MONGODB_URI`
+   - `JWT_SECRET`
+   - `NODE_ENV=production`
+
+### Docker Deployment
+```bash
+# Build Docker image
 docker build -t ecommerce-nest .
-docker run -p 3000:3000 ecommerce-nest
+
+# Run container
+docker run -p 3001:3001 ecommerce-nest
 ```
 
 ## 🔒 Security Features
@@ -275,6 +297,8 @@ For support and questions:
 - CORS is configured to allow requests from specified origins
 - Swagger documentation is available at `/api/docs`
 - Environment variables should be configured in `.env` file
+- **Vercel Deployment**: Successfully configured for Vercel serverless deployment
+- **Dual Mode**: Can run locally (`npm run start:dev`) or deploy to Vercel
 
 ---
 

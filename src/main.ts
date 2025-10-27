@@ -61,6 +61,9 @@ async function createApp(): Promise<NestExpressApplication> {
   return app;
 }
 
+// Export the createApp function for Vercel
+export { createApp };
+
 // For Vercel serverless
 export default async function handler(req: any, res: any) {
   const app = await createApp();

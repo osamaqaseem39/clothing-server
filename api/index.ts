@@ -10,7 +10,9 @@ let app: any;
 
 async function bootstrap() {
   if (!app) {
-    app = await NestFactory.create(AppModule);
+    app = await NestFactory.create(AppModule, {
+      logger: ['error', 'warn', 'log'],
+    });
 
     // Get config service
     const configService = app.get(ConfigService);
@@ -58,11 +60,11 @@ async function bootstrap() {
 
     // Swagger documentation
     const swaggerConfig = configService.get('swagger');
-    if (swaggerConfig.enabled || process.env.NODE_ENV === 'production') {
+    if (swaggerConfig?.enabled !== false && process.env.NODE_ENV === 'production') {
       const config = new DocumentBuilder()
-        .setTitle(swaggerConfig.title)
-        .setDescription(swaggerConfig.description)
-        .setVersion(swaggerConfig.version)
+        .setTitle(swaggerConfig?.title || 'API')
+        .setDescription(swaggerConfig?.description || 'API Documentation')
+        .setVersion(swaggerConfig?.version || '1.0')
         .addBearerAuth()
         .build();
 
@@ -75,16 +77,31 @@ async function bootstrap() {
   return app;
 }
 
-// Export the handler for Vercel
-export default async function handler(req: any, res: any) {
+// Initialize app
+const initPromise = bootstrap();
+
+// Export Vercel serverless function
+export default async (req: any, res: any) => {
   try {
-    const nestApp = await bootstrap();
-    const expressApp = nestApp.getHttpAdapter().getInstance();
+    // Ensure app is initialized
+    const appInstance = await initPromise;
+    
+    // Get the underlying Express instance
+    const expressApp = appInstance.getHttpAdapter().getInstance();
     
     // Handle the request
-    expressApp(req, res);
+    expressApp(req, res, (err: any) => {
+      if (err) {
+        console.error('Request handling error:', err);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Internal server error' });
+        }
+      }
+    });
   } catch (error) {
     console.error('Error in Vercel handler:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
-}
+};

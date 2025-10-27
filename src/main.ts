@@ -78,7 +78,7 @@ async function bootstrap() {
 }
 
 // This file is for local development only
-// Vercel deployment uses api/index.js
+// Vercel deployment uses api/index.ts
 
 // For local development
 if (process.env.NODE_ENV !== 'production') {

@@ -67,6 +67,21 @@ export class CartController {
     return await this.cartService.getCartBySessionId(sessionId);
   }
 
+  @Get('customer/current-user-id')
+  @ApiOperation({ summary: 'Get cart for current user (placeholder endpoint)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Empty cart returned for guest user',
+  })
+  async getCurrentUserCart(): Promise<{ items: any[]; total: number; isEmpty: boolean }> {
+    // Return empty cart for guest users
+    return {
+      items: [],
+      total: 0,
+      isEmpty: true,
+    };
+  }
+
   @Get('customer/:customerId')
   @ApiOperation({ summary: 'Get cart by customer ID' })
   @ApiResponse({

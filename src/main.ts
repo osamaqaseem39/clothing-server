@@ -6,7 +6,13 @@ import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 
-async function bootstrap() {
+let cachedApp: NestExpressApplication;
+
+async function createApp(): Promise<NestExpressApplication> {
+  if (cachedApp) {
+    return cachedApp;
+  }
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Get config service
@@ -50,10 +56,29 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document);
   }
 
-  const port = configService.get('app.port');
-  await app.listen(port);
-  console.log(`🚀 Application is running on: http://localhost:${port}`);
-  console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
+  await app.init();
+  cachedApp = app;
+  return app;
 }
 
-bootstrap(); 
+// For Vercel serverless
+export default async function handler(req: any, res: any) {
+  const app = await createApp();
+  const server = app.getHttpAdapter().getInstance();
+  server(req, res);
+}
+
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  async function bootstrap() {
+    const app = await createApp();
+    const configService = app.get(ConfigService);
+    const port = configService.get('app.port') || 3001;
+    
+    await app.listen(port);
+    console.log(`🚀 Application is running on: http://localhost:${port}`);
+    console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
+  }
+  
+  bootstrap();
+} 

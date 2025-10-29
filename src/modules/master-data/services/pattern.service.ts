@@ -22,6 +22,10 @@ export class PatternService {
     return this.patternModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<Pattern | null> {
+    return this.patternModel.findById(id).exec();
+  }
+
   async create(createPatternDto: Partial<Pattern>): Promise<Pattern> {
     const created = new this.patternModel({
       ...createPatternDto,
@@ -31,6 +35,18 @@ export class PatternService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updatePatternDto: Partial<Pattern>): Promise<Pattern | null> {
+    return this.patternModel.findByIdAndUpdate(
+      id,
+      { ...updatePatternDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<Pattern | null> {
+    return this.patternModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

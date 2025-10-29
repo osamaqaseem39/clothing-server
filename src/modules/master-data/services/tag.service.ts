@@ -22,6 +22,10 @@ export class TagService {
     return this.tagModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<Tag | null> {
+    return this.tagModel.findById(id).exec();
+  }
+
   async create(createTagDto: Partial<Tag>): Promise<Tag> {
     const created = new this.tagModel({
       ...createTagDto,
@@ -31,6 +35,18 @@ export class TagService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updateTagDto: Partial<Tag>): Promise<Tag | null> {
+    return this.tagModel.findByIdAndUpdate(
+      id,
+      { ...updateTagDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<Tag | null> {
+    return this.tagModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

@@ -22,6 +22,10 @@ export class SleeveLengthService {
     return this.sleeveLengthModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<SleeveLength | null> {
+    return this.sleeveLengthModel.findById(id).exec();
+  }
+
   async create(createSleeveLengthDto: Partial<SleeveLength>): Promise<SleeveLength> {
     const created = new this.sleeveLengthModel({
       ...createSleeveLengthDto,
@@ -31,6 +35,18 @@ export class SleeveLengthService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updateSleeveLengthDto: Partial<SleeveLength>): Promise<SleeveLength | null> {
+    return this.sleeveLengthModel.findByIdAndUpdate(
+      id,
+      { ...updateSleeveLengthDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<SleeveLength | null> {
+    return this.sleeveLengthModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

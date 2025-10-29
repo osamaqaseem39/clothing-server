@@ -22,6 +22,10 @@ export class LengthService {
     return this.lengthModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<Length | null> {
+    return this.lengthModel.findById(id).exec();
+  }
+
   async create(createLengthDto: Partial<Length>): Promise<Length> {
     const created = new this.lengthModel({
       ...createLengthDto,
@@ -31,6 +35,18 @@ export class LengthService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updateLengthDto: Partial<Length>): Promise<Length | null> {
+    return this.lengthModel.findByIdAndUpdate(
+      id,
+      { ...updateLengthDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<Length | null> {
+    return this.lengthModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

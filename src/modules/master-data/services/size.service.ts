@@ -23,6 +23,10 @@ export class SizeService {
     return this.sizeModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<Size | null> {
+    return this.sizeModel.findById(id).exec();
+  }
+
   async create(createSizeDto: Partial<Size>): Promise<Size> {
     const created = new this.sizeModel({
       ...createSizeDto,
@@ -32,6 +36,18 @@ export class SizeService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updateSizeDto: Partial<Size>): Promise<Size | null> {
+    return this.sizeModel.findByIdAndUpdate(
+      id,
+      { ...updateSizeDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<Size | null> {
+    return this.sizeModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

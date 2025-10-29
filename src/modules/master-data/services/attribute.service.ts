@@ -22,6 +22,10 @@ export class AttributeService {
     return this.attributeModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<Attribute | null> {
+    return this.attributeModel.findById(id).exec();
+  }
+
   async create(createAttributeDto: Partial<Attribute>): Promise<Attribute> {
     const created = new this.attributeModel({
       ...createAttributeDto,
@@ -31,6 +35,18 @@ export class AttributeService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updateAttributeDto: Partial<Attribute>): Promise<Attribute | null> {
+    return this.attributeModel.findByIdAndUpdate(
+      id,
+      { ...updateAttributeDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<Attribute | null> {
+    return this.attributeModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

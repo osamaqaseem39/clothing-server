@@ -22,6 +22,10 @@ export class NecklineService {
     return this.necklineModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<Neckline | null> {
+    return this.necklineModel.findById(id).exec();
+  }
+
   async create(createNecklineDto: Partial<Neckline>): Promise<Neckline> {
     const created = new this.necklineModel({
       ...createNecklineDto,
@@ -31,6 +35,18 @@ export class NecklineService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updateNecklineDto: Partial<Neckline>): Promise<Neckline | null> {
+    return this.necklineModel.findByIdAndUpdate(
+      id,
+      { ...updateNecklineDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<Neckline | null> {
+    return this.necklineModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

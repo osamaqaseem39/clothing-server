@@ -22,6 +22,10 @@ export class FitService {
     return this.fitModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<Fit | null> {
+    return this.fitModel.findById(id).exec();
+  }
+
   async create(createFitDto: Partial<Fit>): Promise<Fit> {
     const created = new this.fitModel({
       ...createFitDto,
@@ -31,6 +35,18 @@ export class FitService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updateFitDto: Partial<Fit>): Promise<Fit | null> {
+    return this.fitModel.findByIdAndUpdate(
+      id,
+      { ...updateFitDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<Fit | null> {
+    return this.fitModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

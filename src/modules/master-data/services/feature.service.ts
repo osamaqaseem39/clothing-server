@@ -22,6 +22,10 @@ export class FeatureService {
     return this.featureModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<Feature | null> {
+    return this.featureModel.findById(id).exec();
+  }
+
   async create(createFeatureDto: Partial<Feature>): Promise<Feature> {
     const created = new this.featureModel({
       ...createFeatureDto,
@@ -31,6 +35,18 @@ export class FeatureService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updateFeatureDto: Partial<Feature>): Promise<Feature | null> {
+    return this.featureModel.findByIdAndUpdate(
+      id,
+      { ...updateFeatureDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<Feature | null> {
+    return this.featureModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

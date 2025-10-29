@@ -22,6 +22,10 @@ export class AgeGroupService {
     return this.ageGroupModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<AgeGroup | null> {
+    return this.ageGroupModel.findById(id).exec();
+  }
+
   async create(createAgeGroupDto: Partial<AgeGroup>): Promise<AgeGroup> {
     const created = new this.ageGroupModel({
       ...createAgeGroupDto,
@@ -31,6 +35,18 @@ export class AgeGroupService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updateAgeGroupDto: Partial<AgeGroup>): Promise<AgeGroup | null> {
+    return this.ageGroupModel.findByIdAndUpdate(
+      id,
+      { ...updateAgeGroupDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<AgeGroup | null> {
+    return this.ageGroupModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

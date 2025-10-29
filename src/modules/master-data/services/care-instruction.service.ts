@@ -22,6 +22,10 @@ export class CareInstructionService {
     return this.careInstructionModel.find({ isActive: { $ne: false } }).sort({ name: 1 }).exec();
   }
 
+  async findById(id: string): Promise<CareInstruction | null> {
+    return this.careInstructionModel.findById(id).exec();
+  }
+
   async create(createCareInstructionDto: Partial<CareInstruction>): Promise<CareInstruction> {
     const created = new this.careInstructionModel({
       ...createCareInstructionDto,
@@ -31,6 +35,18 @@ export class CareInstructionService {
       updatedAt: new Date(),
     });
     return created.save();
+  }
+
+  async update(id: string, updateCareInstructionDto: Partial<CareInstruction>): Promise<CareInstruction | null> {
+    return this.careInstructionModel.findByIdAndUpdate(
+      id,
+      { ...updateCareInstructionDto, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+  }
+
+  async delete(id: string): Promise<CareInstruction | null> {
+    return this.careInstructionModel.findByIdAndDelete(id).exec();
   }
 
   private generateSlug(name: string): string {

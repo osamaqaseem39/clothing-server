@@ -54,6 +54,27 @@ export class MasterDataController {
     return this.materialService.create(createMaterialDto);
   }
 
+  @Get('materials/:id')
+  @ApiOperation({ summary: 'Get a material by ID' })
+  @ApiResponse({ status: 200, description: 'Material retrieved successfully' })
+  async getMaterialById(@Param('id') id: string) {
+    return this.materialService.findById(id);
+  }
+
+  @Put('materials/:id')
+  @ApiOperation({ summary: 'Update a material' })
+  @ApiResponse({ status: 200, description: 'Material updated successfully' })
+  async updateMaterial(@Param('id') id: string, @Body() updateMaterialDto: any) {
+    return this.materialService.update(id, updateMaterialDto);
+  }
+
+  @Delete('materials/:id')
+  @ApiOperation({ summary: 'Delete a material' })
+  @ApiResponse({ status: 200, description: 'Material deleted successfully' })
+  async deleteMaterial(@Param('id') id: string) {
+    return this.materialService.delete(id);
+  }
+
   // Occasions
   @Get('occasions')
   @ApiOperation({ summary: 'Get all occasions' })
@@ -67,6 +88,27 @@ export class MasterDataController {
   @ApiResponse({ status: 201, description: 'Occasion created successfully' })
   async createOccasion(@Body() createOccasionDto: any) {
     return this.occasionService.create(createOccasionDto);
+  }
+
+  @Get('occasions/:id')
+  @ApiOperation({ summary: 'Get an occasion by ID' })
+  @ApiResponse({ status: 200, description: 'Occasion retrieved successfully' })
+  async getOccasionById(@Param('id') id: string) {
+    return this.occasionService.findById(id);
+  }
+
+  @Put('occasions/:id')
+  @ApiOperation({ summary: 'Update an occasion' })
+  @ApiResponse({ status: 200, description: 'Occasion updated successfully' })
+  async updateOccasion(@Param('id') id: string, @Body() updateOccasionDto: any) {
+    return this.occasionService.update(id, updateOccasionDto);
+  }
+
+  @Delete('occasions/:id')
+  @ApiOperation({ summary: 'Delete an occasion' })
+  @ApiResponse({ status: 200, description: 'Occasion deleted successfully' })
+  async deleteOccasion(@Param('id') id: string) {
+    return this.occasionService.delete(id);
   }
 
   // Seasons
@@ -84,6 +126,27 @@ export class MasterDataController {
     return this.seasonService.create(createSeasonDto);
   }
 
+  @Get('seasons/:id')
+  @ApiOperation({ summary: 'Get a season by ID' })
+  @ApiResponse({ status: 200, description: 'Season retrieved successfully' })
+  async getSeasonById(@Param('id') id: string) {
+    return this.seasonService.findById(id);
+  }
+
+  @Put('seasons/:id')
+  @ApiOperation({ summary: 'Update a season' })
+  @ApiResponse({ status: 200, description: 'Season updated successfully' })
+  async updateSeason(@Param('id') id: string, @Body() updateSeasonDto: any) {
+    return this.seasonService.update(id, updateSeasonDto);
+  }
+
+  @Delete('seasons/:id')
+  @ApiOperation({ summary: 'Delete a season' })
+  @ApiResponse({ status: 200, description: 'Season deleted successfully' })
+  async deleteSeason(@Param('id') id: string) {
+    return this.seasonService.delete(id);
+  }
+
   // Colors
   @Get('colors')
   @ApiOperation({ summary: 'Get all colors' })
@@ -97,6 +160,27 @@ export class MasterDataController {
   @ApiResponse({ status: 201, description: 'Color created successfully' })
   async createColor(@Body() createColorDto: any) {
     return this.colorService.create(createColorDto);
+  }
+
+  @Get('colors/:id')
+  @ApiOperation({ summary: 'Get a color by ID' })
+  @ApiResponse({ status: 200, description: 'Color retrieved successfully' })
+  async getColorById(@Param('id') id: string) {
+    return this.colorService.findById(id);
+  }
+
+  @Put('colors/:id')
+  @ApiOperation({ summary: 'Update a color' })
+  @ApiResponse({ status: 200, description: 'Color updated successfully' })
+  async updateColor(@Param('id') id: string, @Body() updateColorDto: any) {
+    return this.colorService.update(id, updateColorDto);
+  }
+
+  @Delete('colors/:id')
+  @ApiOperation({ summary: 'Delete a color' })
+  @ApiResponse({ status: 200, description: 'Color deleted successfully' })
+  async deleteColor(@Param('id') id: string) {
+    return this.colorService.delete(id);
   }
 
   // Patterns
@@ -114,6 +198,27 @@ export class MasterDataController {
     return this.patternService.create(createPatternDto);
   }
 
+  @Get('patterns/:id')
+  @ApiOperation({ summary: 'Get a pattern by ID' })
+  @ApiResponse({ status: 200, description: 'Pattern retrieved successfully' })
+  async getPatternById(@Param('id') id: string) {
+    return this.patternService.findById(id);
+  }
+
+  @Put('patterns/:id')
+  @ApiOperation({ summary: 'Update a pattern' })
+  @ApiResponse({ status: 200, description: 'Pattern updated successfully' })
+  async updatePattern(@Param('id') id: string, @Body() updatePatternDto: any) {
+    return this.patternService.update(id, updatePatternDto);
+  }
+
+  @Delete('patterns/:id')
+  @ApiOperation({ summary: 'Delete a pattern' })
+  @ApiResponse({ status: 200, description: 'Pattern deleted successfully' })
+  async deletePattern(@Param('id') id: string) {
+    return this.patternService.delete(id);
+  }
+
   // Sleeve Lengths
   @Get('sleeve-lengths')
   @ApiOperation({ summary: 'Get all sleeve lengths' })
@@ -127,6 +232,27 @@ export class MasterDataController {
   @ApiResponse({ status: 201, description: 'Sleeve length created successfully' })
   async createSleeveLength(@Body() createSleeveLengthDto: any) {
     return this.sleeveLengthService.create(createSleeveLengthDto);
+  }
+
+  @Get('sleeve-lengths/:id')
+  @ApiOperation({ summary: 'Get a sleeve length by ID' })
+  @ApiResponse({ status: 200, description: 'Sleeve length retrieved successfully' })
+  async getSleeveLengthById(@Param('id') id: string) {
+    return this.sleeveLengthService.findById(id);
+  }
+
+  @Put('sleeve-lengths/:id')
+  @ApiOperation({ summary: 'Update a sleeve length' })
+  @ApiResponse({ status: 200, description: 'Sleeve length updated successfully' })
+  async updateSleeveLength(@Param('id') id: string, @Body() updateSleeveLengthDto: any) {
+    return this.sleeveLengthService.update(id, updateSleeveLengthDto);
+  }
+
+  @Delete('sleeve-lengths/:id')
+  @ApiOperation({ summary: 'Delete a sleeve length' })
+  @ApiResponse({ status: 200, description: 'Sleeve length deleted successfully' })
+  async deleteSleeveLength(@Param('id') id: string) {
+    return this.sleeveLengthService.delete(id);
   }
 
   // Necklines
@@ -144,6 +270,27 @@ export class MasterDataController {
     return this.necklineService.create(createNecklineDto);
   }
 
+  @Get('necklines/:id')
+  @ApiOperation({ summary: 'Get a neckline by ID' })
+  @ApiResponse({ status: 200, description: 'Neckline retrieved successfully' })
+  async getNecklineById(@Param('id') id: string) {
+    return this.necklineService.findById(id);
+  }
+
+  @Put('necklines/:id')
+  @ApiOperation({ summary: 'Update a neckline' })
+  @ApiResponse({ status: 200, description: 'Neckline updated successfully' })
+  async updateNeckline(@Param('id') id: string, @Body() updateNecklineDto: any) {
+    return this.necklineService.update(id, updateNecklineDto);
+  }
+
+  @Delete('necklines/:id')
+  @ApiOperation({ summary: 'Delete a neckline' })
+  @ApiResponse({ status: 200, description: 'Neckline deleted successfully' })
+  async deleteNeckline(@Param('id') id: string) {
+    return this.necklineService.delete(id);
+  }
+
   // Lengths
   @Get('lengths')
   @ApiOperation({ summary: 'Get all lengths' })
@@ -157,6 +304,27 @@ export class MasterDataController {
   @ApiResponse({ status: 201, description: 'Length created successfully' })
   async createLength(@Body() createLengthDto: any) {
     return this.lengthService.create(createLengthDto);
+  }
+
+  @Get('lengths/:id')
+  @ApiOperation({ summary: 'Get a length by ID' })
+  @ApiResponse({ status: 200, description: 'Length retrieved successfully' })
+  async getLengthById(@Param('id') id: string) {
+    return this.lengthService.findById(id);
+  }
+
+  @Put('lengths/:id')
+  @ApiOperation({ summary: 'Update a length' })
+  @ApiResponse({ status: 200, description: 'Length updated successfully' })
+  async updateLength(@Param('id') id: string, @Body() updateLengthDto: any) {
+    return this.lengthService.update(id, updateLengthDto);
+  }
+
+  @Delete('lengths/:id')
+  @ApiOperation({ summary: 'Delete a length' })
+  @ApiResponse({ status: 200, description: 'Length deleted successfully' })
+  async deleteLength(@Param('id') id: string) {
+    return this.lengthService.delete(id);
   }
 
   // Fits
@@ -174,6 +342,27 @@ export class MasterDataController {
     return this.fitService.create(createFitDto);
   }
 
+  @Get('fits/:id')
+  @ApiOperation({ summary: 'Get a fit by ID' })
+  @ApiResponse({ status: 200, description: 'Fit retrieved successfully' })
+  async getFitById(@Param('id') id: string) {
+    return this.fitService.findById(id);
+  }
+
+  @Put('fits/:id')
+  @ApiOperation({ summary: 'Update a fit' })
+  @ApiResponse({ status: 200, description: 'Fit updated successfully' })
+  async updateFit(@Param('id') id: string, @Body() updateFitDto: any) {
+    return this.fitService.update(id, updateFitDto);
+  }
+
+  @Delete('fits/:id')
+  @ApiOperation({ summary: 'Delete a fit' })
+  @ApiResponse({ status: 200, description: 'Fit deleted successfully' })
+  async deleteFit(@Param('id') id: string) {
+    return this.fitService.delete(id);
+  }
+
   // Age Groups
   @Get('age-groups')
   @ApiOperation({ summary: 'Get all age groups' })
@@ -187,6 +376,27 @@ export class MasterDataController {
   @ApiResponse({ status: 201, description: 'Age group created successfully' })
   async createAgeGroup(@Body() createAgeGroupDto: any) {
     return this.ageGroupService.create(createAgeGroupDto);
+  }
+
+  @Get('age-groups/:id')
+  @ApiOperation({ summary: 'Get an age group by ID' })
+  @ApiResponse({ status: 200, description: 'Age group retrieved successfully' })
+  async getAgeGroupById(@Param('id') id: string) {
+    return this.ageGroupService.findById(id);
+  }
+
+  @Put('age-groups/:id')
+  @ApiOperation({ summary: 'Update an age group' })
+  @ApiResponse({ status: 200, description: 'Age group updated successfully' })
+  async updateAgeGroup(@Param('id') id: string, @Body() updateAgeGroupDto: any) {
+    return this.ageGroupService.update(id, updateAgeGroupDto);
+  }
+
+  @Delete('age-groups/:id')
+  @ApiOperation({ summary: 'Delete an age group' })
+  @ApiResponse({ status: 200, description: 'Age group deleted successfully' })
+  async deleteAgeGroup(@Param('id') id: string) {
+    return this.ageGroupService.delete(id);
   }
 
   // Color Families
@@ -240,6 +450,27 @@ export class MasterDataController {
     return this.careInstructionService.create(createCareInstructionDto);
   }
 
+  @Get('care-instructions/:id')
+  @ApiOperation({ summary: 'Get a care instruction by ID' })
+  @ApiResponse({ status: 200, description: 'Care instruction retrieved successfully' })
+  async getCareInstructionById(@Param('id') id: string) {
+    return this.careInstructionService.findById(id);
+  }
+
+  @Put('care-instructions/:id')
+  @ApiOperation({ summary: 'Update a care instruction' })
+  @ApiResponse({ status: 200, description: 'Care instruction updated successfully' })
+  async updateCareInstruction(@Param('id') id: string, @Body() updateCareInstructionDto: any) {
+    return this.careInstructionService.update(id, updateCareInstructionDto);
+  }
+
+  @Delete('care-instructions/:id')
+  @ApiOperation({ summary: 'Delete a care instruction' })
+  @ApiResponse({ status: 200, description: 'Care instruction deleted successfully' })
+  async deleteCareInstruction(@Param('id') id: string) {
+    return this.careInstructionService.delete(id);
+  }
+
   // Attributes
   @Get('attributes')
   @ApiOperation({ summary: 'Get all attributes' })
@@ -253,6 +484,27 @@ export class MasterDataController {
   @ApiResponse({ status: 201, description: 'Attribute created successfully' })
   async createAttribute(@Body() createAttributeDto: any) {
     return this.attributeService.create(createAttributeDto);
+  }
+
+  @Get('attributes/:id')
+  @ApiOperation({ summary: 'Get an attribute by ID' })
+  @ApiResponse({ status: 200, description: 'Attribute retrieved successfully' })
+  async getAttributeById(@Param('id') id: string) {
+    return this.attributeService.findById(id);
+  }
+
+  @Put('attributes/:id')
+  @ApiOperation({ summary: 'Update an attribute' })
+  @ApiResponse({ status: 200, description: 'Attribute updated successfully' })
+  async updateAttribute(@Param('id') id: string, @Body() updateAttributeDto: any) {
+    return this.attributeService.update(id, updateAttributeDto);
+  }
+
+  @Delete('attributes/:id')
+  @ApiOperation({ summary: 'Delete an attribute' })
+  @ApiResponse({ status: 200, description: 'Attribute deleted successfully' })
+  async deleteAttribute(@Param('id') id: string) {
+    return this.attributeService.delete(id);
   }
 
   // Features
@@ -270,6 +522,27 @@ export class MasterDataController {
     return this.featureService.create(createFeatureDto);
   }
 
+  @Get('features/:id')
+  @ApiOperation({ summary: 'Get a feature by ID' })
+  @ApiResponse({ status: 200, description: 'Feature retrieved successfully' })
+  async getFeatureById(@Param('id') id: string) {
+    return this.featureService.findById(id);
+  }
+
+  @Put('features/:id')
+  @ApiOperation({ summary: 'Update a feature' })
+  @ApiResponse({ status: 200, description: 'Feature updated successfully' })
+  async updateFeature(@Param('id') id: string, @Body() updateFeatureDto: any) {
+    return this.featureService.update(id, updateFeatureDto);
+  }
+
+  @Delete('features/:id')
+  @ApiOperation({ summary: 'Delete a feature' })
+  @ApiResponse({ status: 200, description: 'Feature deleted successfully' })
+  async deleteFeature(@Param('id') id: string) {
+    return this.featureService.delete(id);
+  }
+
   // Tags
   @Get('tags')
   @ApiOperation({ summary: 'Get all tags' })
@@ -285,6 +558,27 @@ export class MasterDataController {
     return this.tagService.create(createTagDto);
   }
 
+  @Get('tags/:id')
+  @ApiOperation({ summary: 'Get a tag by ID' })
+  @ApiResponse({ status: 200, description: 'Tag retrieved successfully' })
+  async getTagById(@Param('id') id: string) {
+    return this.tagService.findById(id);
+  }
+
+  @Put('tags/:id')
+  @ApiOperation({ summary: 'Update a tag' })
+  @ApiResponse({ status: 200, description: 'Tag updated successfully' })
+  async updateTag(@Param('id') id: string, @Body() updateTagDto: any) {
+    return this.tagService.update(id, updateTagDto);
+  }
+
+  @Delete('tags/:id')
+  @ApiOperation({ summary: 'Delete a tag' })
+  @ApiResponse({ status: 200, description: 'Tag deleted successfully' })
+  async deleteTag(@Param('id') id: string) {
+    return this.tagService.delete(id);
+  }
+
   // Sizes
   @Get('sizes')
   @ApiOperation({ summary: 'Get all sizes' })
@@ -298,5 +592,26 @@ export class MasterDataController {
   @ApiResponse({ status: 201, description: 'Size created successfully' })
   async createSize(@Body() createSizeDto: any) {
     return this.sizeService.create(createSizeDto);
+  }
+
+  @Get('sizes/:id')
+  @ApiOperation({ summary: 'Get a size by ID' })
+  @ApiResponse({ status: 200, description: 'Size retrieved successfully' })
+  async getSizeById(@Param('id') id: string) {
+    return this.sizeService.findById(id);
+  }
+
+  @Put('sizes/:id')
+  @ApiOperation({ summary: 'Update a size' })
+  @ApiResponse({ status: 200, description: 'Size updated successfully' })
+  async updateSize(@Param('id') id: string, @Body() updateSizeDto: any) {
+    return this.sizeService.update(id, updateSizeDto);
+  }
+
+  @Delete('sizes/:id')
+  @ApiOperation({ summary: 'Delete a size' })
+  @ApiResponse({ status: 200, description: 'Size deleted successfully' })
+  async deleteSize(@Param('id') id: string) {
+    return this.sizeService.delete(id);
   }
 }

@@ -114,8 +114,8 @@ export class Product {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Brand' })
   brand?: string;
 
-  @ApiProperty({ description: 'Product attributes as array of strings' })
-  @Prop({ type: [String], default: [] })
+  @ApiProperty({ description: 'Product attributes as array of attribute IDs' })
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Attribute', default: [] })
   attributes: string[];
 
   @ApiProperty({ description: 'Product variations' })
@@ -252,9 +252,18 @@ export class Product {
   @Prop({ type: [String], default: [] })
   features?: string[];
 
-  @ApiProperty({ description: 'Available colors' })
-  @Prop({ type: [String], default: [] })
-  colors?: string[];
+  @ApiProperty({ description: 'Available colors with images' })
+  @Prop({
+    type: [{
+      colorId: { type: MongooseSchema.Types.ObjectId, ref: 'Color', required: true },
+      imageUrl: { type: String },
+    }],
+    default: [],
+  })
+  colors?: Array<{
+    colorId: string;
+    imageUrl?: string;
+  }>;
 
   @ApiProperty({ description: 'Stock availability status' })
   @Prop({ default: true })

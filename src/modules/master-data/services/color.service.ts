@@ -7,6 +7,7 @@ export interface Color {
   name: string;
   slug?: string;
   hexCode?: string;
+  imageUrl?: string;
   description?: string;
   isActive?: boolean;
   createdAt?: Date;

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductController } from './controllers/product.controller';
 import { SizeChartController } from './controllers/size-chart.controller';
@@ -12,6 +12,7 @@ import { Tag, TagSchema } from './schemas/tag.schema';
 import { Attribute, AttributeSchema } from './schemas/attribute.schema';
 import { ProductImage, ProductImageSchema } from './schemas/product-image.schema';
 import { ProductVariation, ProductVariationSchema } from './schemas/product-variation.schema';
+import { InventoryModule } from '../inventory/inventory.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ProductVariation, ProductVariationSchema } from './schemas/product-vari
       { name: ProductImage.name, schema: ProductImageSchema },
       { name: ProductVariation.name, schema: ProductVariationSchema },
     ]),
+    forwardRef(() => InventoryModule),
   ],
   controllers: [ProductController, SizeChartController],
   providers: [ProductService, SizeChartService, ProductRepository],

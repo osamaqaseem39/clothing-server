@@ -38,13 +38,13 @@ export class ProductVariation {
   @Prop({ required: true, enum: VariationStockStatus, default: VariationStockStatus.OUTOFSTOCK })
   stockStatus: VariationStockStatus;
 
-  @ApiProperty({ description: 'Variation attributes' })
+  @ApiProperty({ description: 'Variation attributes - using product attributes' })
   @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'ProductAttribute' })
   attributes: string[];
 
-  @ApiProperty({ description: 'Variation image' })
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'ProductImage' })
-  image?: string;
+  @ApiProperty({ description: 'Variation images - each variation has its own images' })
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'ProductImage', default: [] })
+  images: string[];
 
   @ApiProperty({ description: 'Creation timestamp' })
   createdAt: Date;

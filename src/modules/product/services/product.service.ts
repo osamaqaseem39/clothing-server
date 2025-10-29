@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { BaseService } from '../../../common/services/base.service';
 import { ProductRepository } from '../repositories/product.repository';
 import { ProductDocument, StockStatus } from '../schemas/product.schema';
@@ -9,6 +9,7 @@ import { UpdateProductDto } from '../dto/update-product.dto';
 import { PaginationOptions, PaginatedResult } from '../../../common/interfaces/base.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { InventoryService } from '../../inventory/services/inventory.service';
 
 @Injectable()
 export class ProductService extends BaseService<ProductDocument> {
@@ -16,8 +17,76 @@ export class ProductService extends BaseService<ProductDocument> {
     private readonly productRepository: ProductRepository,
     @InjectModel(ProductImage.name) private readonly productImageModel: Model<ProductImageDocument>,
     @InjectModel(ProductVariation.name) private readonly productVariationModel: Model<ProductVariationDocument>,
+    @Inject(forwardRef(() => InventoryService)) private readonly inventoryService: InventoryService,
   ) {
     super(productRepository);
+  }
+
+  // Helper function to map Product StockStatus to Inventory status
+  private mapStockStatusToInventoryStatus(stockStatus: StockStatus): string {
+    switch (stockStatus) {
+      case StockStatus.INSTOCK:
+        return 'in_stock';
+      case StockStatus.OUTOFSTOCK:
+        return 'out_of_stock';
+      case StockStatus.ONBACKORDER:
+        return 'in_stock'; // Treat backorders as in_stock with special handling
+      default:
+        return 'in_stock';
+    }
+  }
+
+  // Helper function to sync product inventory to inventory module
+  private async syncToInventory(product: ProductDocument, updateProductDto?: UpdateProductDto): Promise<void> {
+    if (!product.manageStock) {
+      return; // Don't sync if stock management is disabled
+    }
+
+    try {
+      // Find existing inventory record for this product
+      const existingInventory = await this.inventoryService.findByProduct(product._id.toString());
+      const inventoryRecord = existingInventory.length > 0 ? existingInventory[0] : null;
+
+      const stockQuantity = updateProductDto?.stockQuantity !== undefined 
+        ? updateProductDto.stockQuantity 
+        : product.stockQuantity;
+      
+      const stockStatus = updateProductDto?.stockStatus !== undefined
+        ? updateProductDto.stockStatus
+        : product.stockStatus;
+
+      const costPrice = updateProductDto?.originalPrice !== undefined
+        ? updateProductDto.originalPrice
+        : (product.originalPrice || 0);
+
+      if (inventoryRecord) {
+        // Update existing inventory record
+        await this.inventoryService.updateInventory(inventoryRecord._id.toString(), {
+          currentStock: stockQuantity,
+          availableStock: stockQuantity - (inventoryRecord.reservedStock || 0),
+          sellingPrice: updateProductDto?.price !== undefined ? updateProductDto.price : product.price,
+          costPrice: costPrice || inventoryRecord.costPrice,
+          status: this.mapStockStatusToInventoryStatus(stockStatus),
+        });
+      } else {
+        // Create new inventory record
+        await this.inventoryService.createInventory({
+          productId: product._id.toString(),
+          currentStock: stockQuantity,
+          availableStock: stockQuantity,
+          reservedStock: 0,
+          reorderPoint: Math.max(10, Math.floor(stockQuantity * 0.1)), // Default to 10% of stock or 10 minimum
+          reorderQuantity: Math.max(50, Math.floor(stockQuantity * 0.5)), // Default to 50% of stock or 50 minimum
+          costPrice: costPrice || 0,
+          sellingPrice: product.price,
+          warehouse: 'main',
+          status: this.mapStockStatusToInventoryStatus(stockStatus),
+        });
+      }
+    } catch (error) {
+      // Log error but don't fail product creation/update
+      console.error('Error syncing product to inventory:', error);
+    }
   }
 
   async createProduct(createProductDto: CreateProductDto): Promise<ProductDocument> {
@@ -77,6 +146,18 @@ export class ProductService extends BaseService<ProductDocument> {
     if (variationsData && variationsData.length > 0) {
       const variationDocuments = await Promise.all(
         variationsData.map(async (variationData) => {
+          // Handle variation images if provided
+          let variationImageIds: string[] = [];
+          if (variationData.images && variationData.images.length > 0) {
+            const variationImageDocuments = await Promise.all(
+              variationData.images.map(async (imageData) => {
+                const image = new this.productImageModel(imageData);
+                return await image.save();
+              })
+            );
+            variationImageIds = variationImageDocuments.map(img => img._id.toString());
+          }
+
           const variation = new this.productVariationModel({
             productId: product._id,
             sku: variationData.sku,
@@ -85,6 +166,7 @@ export class ProductService extends BaseService<ProductDocument> {
             stockQuantity: variationData.stockQuantity || 0,
             stockStatus: variationData.stockStatus || 'outofstock',
             attributes: variationData.attributes || [],
+            images: variationImageIds,
           });
           return await variation.save();
         })
@@ -94,9 +176,14 @@ export class ProductService extends BaseService<ProductDocument> {
 
     // Update product with variation IDs
     if (variationIds.length > 0) {
-      return await this.productRepository.update(product._id.toString(), { variations: variationIds });
+      const updatedProduct = await this.productRepository.update(product._id.toString(), { variations: variationIds });
+      // Sync to inventory after product creation
+      await this.syncToInventory(updatedProduct);
+      return updatedProduct;
     }
 
+    // Sync to inventory after product creation
+    await this.syncToInventory(product);
     return product;
   }
 
@@ -173,6 +260,18 @@ export class ProductService extends BaseService<ProductDocument> {
       // Create new variations
       const variationDocuments = await Promise.all(
         variationsData.map(async (variationData) => {
+          // Handle variation images if provided
+          let variationImageIds: string[] = [];
+          if (variationData.images && variationData.images.length > 0) {
+            const variationImageDocuments = await Promise.all(
+              variationData.images.map(async (imageData) => {
+                const image = new this.productImageModel(imageData);
+                return await image.save();
+              })
+            );
+            variationImageIds = variationImageDocuments.map(img => img._id.toString());
+          }
+
           // If variation has an ID, update it, otherwise create new
           if (variationData._id) {
             return await this.productVariationModel.findByIdAndUpdate(
@@ -180,6 +279,7 @@ export class ProductService extends BaseService<ProductDocument> {
               {
                 ...variationData,
                 productId: id,
+                images: variationImageIds.length > 0 ? variationImageIds : undefined,
               },
               { new: true }
             );
@@ -192,6 +292,7 @@ export class ProductService extends BaseService<ProductDocument> {
               stockQuantity: variationData.stockQuantity || 0,
               stockStatus: variationData.stockStatus || 'outofstock',
               attributes: variationData.attributes || [],
+              images: variationImageIds,
             });
             return await variation.save();
           }
@@ -201,9 +302,19 @@ export class ProductService extends BaseService<ProductDocument> {
       const variationIds = variationDocuments.map(v => v._id.toString());
       
       // Update product with variation IDs
-      return await this.productRepository.update(id, { variations: variationIds });
+      const finalProduct = await this.productRepository.update(id, { variations: variationIds });
+      // Sync to inventory after product update
+      await this.syncToInventory(finalProduct, updateProductDto);
+      return finalProduct;
     }
 
+    // Sync to inventory after product update (if inventory-related fields changed)
+    if (updateProductDto.stockQuantity !== undefined || 
+        updateProductDto.stockStatus !== undefined || 
+        updateProductDto.price !== undefined ||
+        updateProductDto.originalPrice !== undefined) {
+      await this.syncToInventory(updatedProduct, updateProductDto);
+    }
     return updatedProduct;
   }
 
@@ -252,9 +363,40 @@ export class ProductService extends BaseService<ProductDocument> {
       stockStatus = StockStatus.OUTOFSTOCK;
     }
 
-    return await this.productRepository.update(id, {
+    const updatedProduct = await this.productRepository.update(id, {
       stockQuantity: Math.max(0, newQuantity),
       stockStatus,
     });
+
+    // Sync to inventory
+    await this.syncToInventory(updatedProduct, {
+      stockQuantity: Math.max(0, newQuantity),
+      stockStatus,
+    });
+
+    return updatedProduct;
+  }
+
+  // Public method to sync inventory data to product (used by InventoryService)
+  async syncInventoryToProduct(productId: string, inventoryData: {
+    stockQuantity: number;
+    stockStatus: StockStatus;
+    price?: number;
+    originalPrice?: number;
+  }): Promise<ProductDocument> {
+    const updateData: any = {
+      stockQuantity: inventoryData.stockQuantity,
+      stockStatus: inventoryData.stockStatus,
+    };
+
+    if (inventoryData.price !== undefined) {
+      updateData.price = inventoryData.price;
+    }
+
+    if (inventoryData.originalPrice !== undefined) {
+      updateData.originalPrice = inventoryData.originalPrice;
+    }
+
+    return await this.productRepository.update(productId, updateData);
   }
 } 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Inventory, InventoryDocument } from '../schemas/inventory.schema';
@@ -9,17 +9,70 @@ import { AdjustStockDto } from '../dto/adjust-stock.dto';
 import { TransferStockDto } from '../dto/transfer-stock.dto';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 import { PaginatedResult } from '../../../common/interfaces/base.interface';
+import { ProductService } from '../../product/services/product.service';
+import { StockStatus } from '../../product/schemas/product.schema';
 
 @Injectable()
 export class InventoryService {
   constructor(
     @InjectModel(Inventory.name) private inventoryModel: Model<InventoryDocument>,
     @InjectModel(InventoryMovement.name) private movementModel: Model<InventoryMovementDocument>,
+    @Inject(forwardRef(() => ProductService)) private productService: ProductService,
   ) {}
 
+  // Helper function to map Inventory status to Product StockStatus
+  private mapInventoryStatusToStockStatus(status: string): StockStatus {
+    switch (status) {
+      case 'in_stock':
+        return StockStatus.INSTOCK;
+      case 'out_of_stock':
+        return StockStatus.OUTOFSTOCK;
+      case 'low_stock':
+        return StockStatus.INSTOCK; // Low stock is still in stock
+      case 'discontinued':
+        return StockStatus.OUTOFSTOCK;
+      default:
+        return StockStatus.INSTOCK;
+    }
+  }
+
+  // Helper function to sync inventory changes back to product
+  private async syncToProduct(inventory: Inventory): Promise<void> {
+    try {
+      // Get current product
+      const product = await this.productService.findById(inventory.productId);
+      
+      if (!product.manageStock) {
+        return; // Don't sync if stock management is disabled on product
+      }
+
+      // Update product with inventory data using the public sync method
+      await this.productService.syncInventoryToProduct(inventory.productId, {
+        stockQuantity: inventory.currentStock,
+        stockStatus: this.mapInventoryStatusToStockStatus(inventory.status),
+        price: inventory.sellingPrice,
+        originalPrice: inventory.costPrice,
+      });
+    } catch (error) {
+      // Log error but don't fail inventory update
+      console.error('Error syncing inventory to product:', error);
+    }
+  }
+
   async createInventory(createInventoryDto: CreateInventoryDto): Promise<Inventory> {
-    const inventory = new this.inventoryModel(createInventoryDto);
-    return await inventory.save();
+    // Calculate availableStock if not provided
+    const availableStock = createInventoryDto.currentStock - (createInventoryDto['reservedStock'] || 0);
+    
+    const inventory = new this.inventoryModel({
+      ...createInventoryDto,
+      availableStock,
+    });
+    const savedInventory = await inventory.save();
+
+    // Sync to product
+    await this.syncToProduct(savedInventory);
+
+    return savedInventory;
   }
 
   async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Inventory>> {
@@ -70,7 +123,17 @@ export class InventoryService {
   }
 
   async updateInventory(id: string, updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
-    return await this.update(id, updateInventoryDto);
+    const updatedInventory = await this.update(id, updateInventoryDto);
+    
+    // Sync to product if inventory-related fields were updated
+    if (updateInventoryDto.currentStock !== undefined || 
+        updateInventoryDto.status !== undefined ||
+        updateInventoryDto.sellingPrice !== undefined ||
+        updateInventoryDto.costPrice !== undefined) {
+      await this.syncToProduct(updatedInventory);
+    }
+
+    return updatedInventory;
   }
 
   async adjustStock(id: string, adjustStockDto: AdjustStockDto): Promise<Inventory> {
@@ -87,7 +150,11 @@ export class InventoryService {
     }
 
     inventory.currentStock = newStock;
-    await this.inventoryModel.findByIdAndUpdate(id, { currentStock: newStock });
+    inventory.availableStock = newStock - inventory.reservedStock;
+    await this.inventoryModel.findByIdAndUpdate(id, { 
+      currentStock: newStock,
+      availableStock: newStock - inventory.reservedStock,
+    });
 
     // Record movement
     await this.recordMovement({
@@ -98,6 +165,9 @@ export class InventoryService {
       referenceType: adjustStockDto.referenceType,
       notes: adjustStockDto.notes
     });
+
+    // Sync to product
+    await this.syncToProduct(inventory);
 
     return inventory;
   }
@@ -126,8 +196,20 @@ export class InventoryService {
     const newFromStock = fromInventory.currentStock - transferStockDto.quantity;
     const newToStock = toInventory.currentStock + transferStockDto.quantity;
 
-    await this.inventoryModel.findByIdAndUpdate(id, { currentStock: newFromStock });
-    await this.inventoryModel.findByIdAndUpdate(toInventory._id, { currentStock: newToStock });
+    await this.inventoryModel.findByIdAndUpdate(id, { 
+      currentStock: newFromStock,
+      availableStock: newFromStock - fromInventory.reservedStock,
+    });
+    await this.inventoryModel.findByIdAndUpdate(toInventory._id, { 
+      currentStock: newToStock,
+      availableStock: newToStock - toInventory.reservedStock,
+    });
+
+    // Update local objects for sync
+    fromInventory.currentStock = newFromStock;
+    fromInventory.availableStock = newFromStock - fromInventory.reservedStock;
+    toInventory.currentStock = newToStock;
+    toInventory.availableStock = newToStock - toInventory.reservedStock;
 
     // Record movements
     await this.recordMovement({
@@ -145,6 +227,9 @@ export class InventoryService {
       referenceType: 'TRANSFER_IN',
       notes: `Transferred from ${id}: ${transferStockDto.notes || ''}`
     });
+
+    // Sync both inventories to product (they should point to the same product)
+    await this.syncToProduct(fromInventory);
 
     return { from: fromInventory, to: toInventory };
   }
@@ -169,6 +254,12 @@ export class InventoryService {
   }
 
   async update(id: string, updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
+    // Calculate availableStock if currentStock is being updated
+    if (updateInventoryDto.currentStock !== undefined) {
+      const currentInventory = await this.findById(id);
+      updateInventoryDto.availableStock = updateInventoryDto.currentStock - (currentInventory.reservedStock || 0);
+    }
+
     const inventory = await this.inventoryModel.findByIdAndUpdate(id, updateInventoryDto, { new: true });
     if (!inventory) {
       throw new Error('Inventory not found');

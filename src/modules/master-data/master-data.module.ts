@@ -16,6 +16,7 @@ import { AttributeService } from './services/attribute.service';
 import { FeatureService } from './services/feature.service';
 import { TagService } from './services/tag.service';
 import { SizeService } from './services/size.service';
+import { ColorFamilyService } from './services/color-family.service';
 import { Schema } from 'mongoose';
 
 // Define schemas for each master data type
@@ -50,6 +51,7 @@ const ColorSchema = new Schema({
   name: { type: String, required: true },
   slug: String,
   hexCode: String,
+  imageUrl: String,
   description: String,
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
@@ -102,6 +104,15 @@ const FitSchema = new Schema({
 });
 
 const AgeGroupSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const ColorFamilySchema = new Schema({
   name: { type: String, required: true },
   slug: String,
   description: String,
@@ -169,6 +180,7 @@ const SizeSchema = new Schema({
       { name: 'Length', schema: LengthSchema },
       { name: 'Fit', schema: FitSchema },
       { name: 'AgeGroup', schema: AgeGroupSchema },
+      { name: 'ColorFamily', schema: ColorFamilySchema },
       { name: 'CareInstruction', schema: CareInstructionSchema },
       { name: 'Attribute', schema: AttributeSchema },
       { name: 'Feature', schema: FeatureSchema },
@@ -188,6 +200,7 @@ const SizeSchema = new Schema({
     LengthService,
     FitService,
     AgeGroupService,
+    ColorFamilyService,
     CareInstructionService,
     AttributeService,
     FeatureService,
@@ -205,6 +218,7 @@ const SizeSchema = new Schema({
     LengthService,
     FitService,
     AgeGroupService,
+    ColorFamilyService,
     CareInstructionService,
     AttributeService,
     FeatureService,

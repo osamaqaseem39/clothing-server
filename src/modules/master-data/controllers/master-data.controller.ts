@@ -10,6 +10,7 @@ import { NecklineService } from '../services/neckline.service';
 import { LengthService } from '../services/length.service';
 import { FitService } from '../services/fit.service';
 import { AgeGroupService } from '../services/age-group.service';
+import { ColorFamilyService } from '../services/color-family.service';
 import { CareInstructionService } from '../services/care-instruction.service';
 import { AttributeService } from '../services/attribute.service';
 import { FeatureService } from '../services/feature.service';
@@ -30,6 +31,7 @@ export class MasterDataController {
     private readonly lengthService: LengthService,
     private readonly fitService: FitService,
     private readonly ageGroupService: AgeGroupService,
+    private readonly colorFamilyService: ColorFamilyService,
     private readonly careInstructionService: CareInstructionService,
     private readonly attributeService: AttributeService,
     private readonly featureService: FeatureService,
@@ -185,6 +187,42 @@ export class MasterDataController {
   @ApiResponse({ status: 201, description: 'Age group created successfully' })
   async createAgeGroup(@Body() createAgeGroupDto: any) {
     return this.ageGroupService.create(createAgeGroupDto);
+  }
+
+  // Color Families
+  @Get('color-families')
+  @ApiOperation({ summary: 'Get all color families' })
+  @ApiResponse({ status: 200, description: 'Color families retrieved successfully' })
+  async getColorFamilies() {
+    return this.colorFamilyService.findAll();
+  }
+
+  @Post('color-families')
+  @ApiOperation({ summary: 'Create a new color family' })
+  @ApiResponse({ status: 201, description: 'Color family created successfully' })
+  async createColorFamily(@Body() createColorFamilyDto: any) {
+    return this.colorFamilyService.create(createColorFamilyDto);
+  }
+
+  @Put('color-families/:id')
+  @ApiOperation({ summary: 'Update a color family' })
+  @ApiResponse({ status: 200, description: 'Color family updated successfully' })
+  async updateColorFamily(@Param('id') id: string, @Body() updateColorFamilyDto: any) {
+    return this.colorFamilyService.update(id, updateColorFamilyDto);
+  }
+
+  @Delete('color-families/:id')
+  @ApiOperation({ summary: 'Delete a color family' })
+  @ApiResponse({ status: 200, description: 'Color family deleted successfully' })
+  async deleteColorFamily(@Param('id') id: string) {
+    return this.colorFamilyService.delete(id);
+  }
+
+  @Get('color-families/:id')
+  @ApiOperation({ summary: 'Get a color family by ID' })
+  @ApiResponse({ status: 200, description: 'Color family retrieved successfully' })
+  async getColorFamilyById(@Param('id') id: string) {
+    return this.colorFamilyService.findById(id);
   }
 
   // Care Instructions

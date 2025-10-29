@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { InventoryController } from './controllers/inventory.controller';
 import { InventoryService } from './services/inventory.service';
@@ -13,7 +13,7 @@ import { ProductModule } from '../product/product.module';
       { name: Inventory.name, schema: InventorySchema },
       { name: InventoryMovement.name, schema: InventoryMovementSchema },
     ]),
-    ProductModule,
+    forwardRef(() => ProductModule),
   ],
   controllers: [InventoryController],
   providers: [InventoryService, InventoryRepository],

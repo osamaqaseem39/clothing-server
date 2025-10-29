@@ -230,4 +230,10 @@ export class CreateProductDto {
   @IsArray()
   @IsString({ each: true })
   availableSizes?: string[];
+
+  @ApiPropertyOptional({ description: 'Original/cost price (used for inventory cost calculation)' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  originalPrice?: number;
 } 

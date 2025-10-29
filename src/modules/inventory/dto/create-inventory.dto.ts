@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsOptional, IsMongoId, Min, IsEnum } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsMongoId, Min, IsIn } from 'class-validator';
 
 export class CreateInventoryDto {
   @ApiProperty({ description: 'Product ID' })
@@ -46,4 +46,22 @@ export class CreateInventoryDto {
   @IsOptional()
   @IsString()
   warehouse?: string;
+
+  @ApiProperty({ description: 'Available stock quantity (calculated if not provided)', required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  availableStock?: number;
+
+  @ApiProperty({ description: 'Reserved stock quantity (defaults to 0)', required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  reservedStock?: number;
+
+  @ApiProperty({ description: 'Stock status', enum: ['in_stock', 'low_stock', 'out_of_stock', 'discontinued'], required: false })
+  @IsOptional()
+  @IsString()
+  @IsIn(['in_stock', 'low_stock', 'out_of_stock', 'discontinued'])
+  status?: string;
 }

@@ -21,6 +21,7 @@ import { ReviewModule } from './modules/review/review.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { HealthModule } from './modules/health/health.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { MasterDataModule } from './modules/master-data/master-data.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     NotificationModule,
     HealthModule,
     AnalyticsModule,
+    MasterDataModule,
   ],
 })
 export class AppModule {} 

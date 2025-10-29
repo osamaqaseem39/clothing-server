@@ -170,6 +170,145 @@ export class AnalyticsService {
     };
   }
 
+  async getCustomerGrowth(period: string) {
+    const days = this.getDaysFromPeriod(period);
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const growthData = await this.customerModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+            day: { $dayOfMonth: '$createdAt' },
+          },
+          newCustomers: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 },
+      },
+    ]);
+
+    return {
+      period,
+      data: growthData.map(item => ({
+        date: `${item._id.year}-${item._id.month.toString().padStart(2, '0')}-${item._id.day.toString().padStart(2, '0')}`,
+        newCustomers: item.newCustomers,
+      })),
+    };
+  }
+
+  async getProductPerformance(period: string) {
+    const days = this.getDaysFromPeriod(period);
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const performanceData = await this.orderModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate },
+        },
+      },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: {
+            productId: '$items.productId',
+          },
+          totalSold: { $sum: '$items.quantity' },
+          totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },
+        },
+      },
+      { $sort: { totalSold: -1 } },
+      { $limit: 10 },
+    ]);
+
+    return {
+      period,
+      data: performanceData,
+    };
+  }
+
+  async getCategoryPerformance(period: string) {
+    const days = this.getDaysFromPeriod(period);
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const categoryData = await this.orderModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate },
+        },
+      },
+      { $unwind: '$items' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.productId',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      { $unwind: '$product' },
+      { $unwind: '$product.categories' },
+      {
+        $group: {
+          _id: '$product.categories',
+          totalSold: { $sum: '$items.quantity' },
+          totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },
+        },
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 10 },
+    ]);
+
+    return {
+      period,
+      data: categoryData,
+    };
+  }
+
+  async getConversionRates(period: string) {
+    const days = this.getDaysFromPeriod(period);
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const [totalViews, totalOrders, totalRevenue] = await Promise.all([
+      // In a real implementation, you'd have a views tracking system
+      // For now, we'll return mock data or calculate from available metrics
+      Promise.resolve(0),
+      this.orderModel.countDocuments({ createdAt: { $gte: startDate } }),
+      this.orderModel.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: startDate },
+            status: { $ne: 'cancelled' },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$totalAmount' },
+          },
+        },
+      ]),
+    ]);
+
+    const views = 1000; // Mock data - replace with actual views tracking
+    const conversionRate = views > 0 ? (totalOrders / views) * 100 : 0;
+
+    return {
+      period,
+      totalViews: views,
+      totalOrders,
+      totalRevenue: totalRevenue[0]?.total || 0,
+      conversionRate: conversionRate.toFixed(2),
+    };
+  }
+
   private getDaysFromPeriod(period: string): number {
     switch (period) {
       case '7d':

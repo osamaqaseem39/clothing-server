@@ -49,4 +49,48 @@ export class AnalyticsController {
   async getTopProducts(@Query('limit') limit: string = '5') {
     return await this.analyticsService.getTopProducts(parseInt(limit));
   }
+
+  @Get('customer-growth')
+  @ApiOperation({ summary: 'Get customer growth analytics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Customer growth analytics retrieved successfully',
+  })
+  @ApiQuery({ name: 'period', description: 'Time period (7d, 30d, 90d)', required: false })
+  async getCustomerGrowth(@Query('period') period: string = '7d') {
+    return await this.analyticsService.getCustomerGrowth(period);
+  }
+
+  @Get('product-performance')
+  @ApiOperation({ summary: 'Get product performance analytics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Product performance analytics retrieved successfully',
+  })
+  @ApiQuery({ name: 'period', description: 'Time period (7d, 30d, 90d)', required: false })
+  async getProductPerformance(@Query('period') period: string = '7d') {
+    return await this.analyticsService.getProductPerformance(period);
+  }
+
+  @Get('category-performance')
+  @ApiOperation({ summary: 'Get category performance analytics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Category performance analytics retrieved successfully',
+  })
+  @ApiQuery({ name: 'period', description: 'Time period (7d, 30d, 90d)', required: false })
+  async getCategoryPerformance(@Query('period') period: string = '7d') {
+    return await this.analyticsService.getCategoryPerformance(period);
+  }
+
+  @Get('conversion-rates')
+  @ApiOperation({ summary: 'Get conversion rates analytics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Conversion rates analytics retrieved successfully',
+  })
+  @ApiQuery({ name: 'period', description: 'Time period (7d, 30d, 90d)', required: false })
+  async getConversionRates(@Query('period') period: string = '7d') {
+    return await this.analyticsService.getConversionRates(period);
+  }
 }

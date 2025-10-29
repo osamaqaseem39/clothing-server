@@ -45,7 +45,7 @@ export class Cart {
   total: number;
 
   @ApiProperty({ description: 'Currency' })
-  @Prop({ required: true, default: 'USD' })
+  @Prop({ required: true, default: 'PKR' })
   currency: string;
 
   @ApiProperty({ description: 'Creation timestamp' })

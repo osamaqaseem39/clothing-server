@@ -43,7 +43,7 @@ export class CreatePaymentDto {
   @IsDateString()
   paymentDate?: string;
 
-  @ApiPropertyOptional({ description: 'Currency code', default: 'USD' })
+  @ApiPropertyOptional({ description: 'Currency code', default: 'PKR' })
   @IsOptional()
   @IsString()
   currency?: string;

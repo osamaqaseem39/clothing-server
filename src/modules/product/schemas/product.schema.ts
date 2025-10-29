@@ -61,7 +61,7 @@ export class Product {
   salePrice?: number;
 
   @ApiProperty({ description: 'Currency code' })
-  @Prop({ required: true, default: 'USD' })
+  @Prop({ required: true, default: 'PKR' })
   currency: string;
 
   @ApiProperty({ description: 'Stock quantity' })

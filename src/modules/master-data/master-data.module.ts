@@ -16,42 +16,164 @@ import { AttributeService } from './services/attribute.service';
 import { FeatureService } from './services/feature.service';
 import { TagService } from './services/tag.service';
 import { SizeService } from './services/size.service';
+import { Schema } from 'mongoose';
 
 // Define schemas for each master data type
-const MaterialSchema = { name: 'Material', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const OccasionSchema = { name: 'Occasion', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const SeasonSchema = { name: 'Season', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const ColorSchema = { name: 'Color', schema: { name: String, slug: String, hexCode: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const PatternSchema = { name: 'Pattern', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const SleeveLengthSchema = { name: 'SleeveLength', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const NecklineSchema = { name: 'Neckline', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const LengthSchema = { name: 'Length', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const FitSchema = { name: 'Fit', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const AgeGroupSchema = { name: 'AgeGroup', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const CareInstructionSchema = { name: 'CareInstruction', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const AttributeSchema = { name: 'Attribute', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const FeatureSchema = { name: 'Feature', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const TagSchema = { name: 'Tag', schema: { name: String, slug: String, description: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
-const SizeSchema = { name: 'Size', schema: { name: String, slug: String, description: String, sizeType: String, isActive: { type: Boolean, default: true }, createdAt: Date, updatedAt: Date } };
+const MaterialSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const OccasionSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const SeasonSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const ColorSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  hexCode: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const PatternSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const SleeveLengthSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const NecklineSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const LengthSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const FitSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const AgeGroupSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const CareInstructionSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const AttributeSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const FeatureSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const TagSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const SizeSchema = new Schema({
+  name: { type: String, required: true },
+  slug: String,
+  description: String,
+  sizeType: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      MaterialSchema,
-      OccasionSchema,
-      SeasonSchema,
-      ColorSchema,
-      PatternSchema,
-      SleeveLengthSchema,
-      NecklineSchema,
-      LengthSchema,
-      FitSchema,
-      AgeGroupSchema,
-      CareInstructionSchema,
-      AttributeSchema,
-      FeatureSchema,
-      TagSchema,
-      SizeSchema,
+      { name: 'Material', schema: MaterialSchema },
+      { name: 'Occasion', schema: OccasionSchema },
+      { name: 'Season', schema: SeasonSchema },
+      { name: 'Color', schema: ColorSchema },
+      { name: 'Pattern', schema: PatternSchema },
+      { name: 'SleeveLength', schema: SleeveLengthSchema },
+      { name: 'Neckline', schema: NecklineSchema },
+      { name: 'Length', schema: LengthSchema },
+      { name: 'Fit', schema: FitSchema },
+      { name: 'AgeGroup', schema: AgeGroupSchema },
+      { name: 'CareInstruction', schema: CareInstructionSchema },
+      { name: 'Attribute', schema: AttributeSchema },
+      { name: 'Feature', schema: FeatureSchema },
+      { name: 'Tag', schema: TagSchema },
+      { name: 'Size', schema: SizeSchema },
     ]),
   ],
   controllers: [MasterDataController],

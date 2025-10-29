@@ -63,6 +63,6 @@ export class MasterDataService<T extends MasterDataItem> {
       .replace(/[^a-z0-9 -]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
-      .trim('-');
+      .trim();
   }
 }

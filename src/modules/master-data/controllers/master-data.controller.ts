@@ -1,20 +1,20 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
-import { MaterialService } from './services/material.service';
-import { OccasionService } from './services/occasion.service';
-import { SeasonService } from './services/season.service';
-import { ColorService } from './services/color.service';
-import { PatternService } from './services/pattern.service';
-import { SleeveLengthService } from './services/sleeve-length.service';
-import { NecklineService } from './services/neckline.service';
-import { LengthService } from './services/length.service';
-import { FitService } from './services/fit.service';
-import { AgeGroupService } from './services/age-group.service';
-import { CareInstructionService } from './services/care-instruction.service';
-import { AttributeService } from './services/attribute.service';
-import { FeatureService } from './services/feature.service';
-import { TagService } from './services/tag.service';
-import { SizeService } from './services/size.service';
+import { MaterialService } from '../services/material.service';
+import { OccasionService } from '../services/occasion.service';
+import { SeasonService } from '../services/season.service';
+import { ColorService } from '../services/color.service';
+import { PatternService } from '../services/pattern.service';
+import { SleeveLengthService } from '../services/sleeve-length.service';
+import { NecklineService } from '../services/neckline.service';
+import { LengthService } from '../services/length.service';
+import { FitService } from '../services/fit.service';
+import { AgeGroupService } from '../services/age-group.service';
+import { CareInstructionService } from '../services/care-instruction.service';
+import { AttributeService } from '../services/attribute.service';
+import { FeatureService } from '../services/feature.service';
+import { TagService } from '../services/tag.service';
+import { SizeService } from '../services/size.service';
 
 @ApiTags('Master Data')
 @Controller('master-data')

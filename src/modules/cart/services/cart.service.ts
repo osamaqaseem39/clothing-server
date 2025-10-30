@@ -19,7 +19,7 @@ export class CartService extends BaseService<CartDocument> {
       customerId,
       items: [],
       total: 0,
-      currency: 'USD',
+      currency: 'PKR',
     };
 
     return await this.cartRepository.create(cartData);

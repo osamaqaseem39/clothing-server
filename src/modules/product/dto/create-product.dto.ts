@@ -50,7 +50,7 @@ export class CreateProductDto {
   @Min(0)
   salePrice?: number;
 
-  @ApiPropertyOptional({ description: 'Currency code', default: 'USD' })
+  @ApiPropertyOptional({ description: 'Currency code', default: 'PKR' })
   @IsOptional()
   @IsString()
   currency?: string;

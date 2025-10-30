@@ -13,6 +13,45 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
     super(productModel);
   }
 
+  // Override to populate relations commonly needed by the dashboard
+  async findById(id: string): Promise<ProductDocument | null> {
+    return await this.productModel
+      .findById(id)
+      .populate('images')
+      .populate('variations')
+      .exec();
+  }
+
+  // Override to populate images for list views
+  async findAll(options?: PaginationOptions): Promise<PaginatedResult<ProductDocument>> {
+    const { page = 1, limit = 10, sort, sortBy, order = 'desc', sortOrder } = options || {} as any;
+
+    const sortField: any = (sortBy as any) || (sort as any);
+    const orderBy: any = (sortOrder as any) || (order as any);
+
+    const skip = (page - 1) * limit;
+    const sortOption: any = sortField ? { [sortField]: orderBy === 'desc' ? -1 : 1 } : { createdAt: -1 };
+
+    const [data, total] = await Promise.all([
+      this.productModel
+        .find()
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limit)
+        .populate('images')
+        .exec(),
+      this.productModel.countDocuments().exec(),
+    ]);
+
+    return {
+      data,
+      total,
+      page: page || 1,
+      limit: limit || 10,
+      totalPages: Math.ceil(total / (limit || 10)),
+    };
+  }
+
   async findBySlug(slug: string): Promise<ProductDocument | null> {
     return await this.productModel.findOne({ slug }).exec();
   }

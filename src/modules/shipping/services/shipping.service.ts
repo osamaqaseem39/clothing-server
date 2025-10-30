@@ -113,7 +113,7 @@ export class ShippingService {
     return {
       availableMethods: methodsWithCosts,
       totalCost: methodsWithCosts.length > 0 ? methodsWithCosts[0].cost : 0,
-      currency: 'USD', // You might want to make this configurable
+      currency: 'PKR', // You might want to make this configurable
     };
   }
 

@@ -179,12 +179,15 @@ export class ProductService extends BaseService<ProductDocument> {
       const updatedProduct = await this.productRepository.update(product._id.toString(), { variations: variationIds });
       // Sync to inventory after product creation
       await this.syncToInventory(updatedProduct);
-      return updatedProduct;
+      // Return populated product
+      const populated = await this.productRepository.findById(updatedProduct._id.toString());
+      return populated as any;
     }
 
     // Sync to inventory after product creation
     await this.syncToInventory(product);
-    return product;
+    const populated = await this.productRepository.findById(product._id.toString());
+    return populated as any;
   }
 
   async updateProduct(id: string, updateProductDto: UpdateProductDto): Promise<ProductDocument> {
@@ -305,7 +308,8 @@ export class ProductService extends BaseService<ProductDocument> {
       const finalProduct = await this.productRepository.update(id, { variations: variationIds });
       // Sync to inventory after product update
       await this.syncToInventory(finalProduct, updateProductDto);
-      return finalProduct;
+      const populatedFinal = await this.productRepository.findById(finalProduct._id.toString());
+      return populatedFinal as any;
     }
 
     // Sync to inventory after product update (if inventory-related fields changed)
@@ -315,7 +319,8 @@ export class ProductService extends BaseService<ProductDocument> {
         updateProductDto.originalPrice !== undefined) {
       await this.syncToInventory(updatedProduct, updateProductDto);
     }
-    return updatedProduct;
+    const populatedUpdated = await this.productRepository.findById(updatedProduct._id.toString());
+    return populatedUpdated as any;
   }
 
   async findBySlug(slug: string): Promise<ProductDocument> {

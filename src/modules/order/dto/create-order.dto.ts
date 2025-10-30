@@ -141,7 +141,7 @@ export class CreateOrderDto {
   @Min(0)
   taxTotal?: number;
 
-  @ApiPropertyOptional({ description: 'Currency', default: 'USD' })
+  @ApiPropertyOptional({ description: 'Currency', default: 'PKR' })
   @IsOptional()
   @IsString()
   currency?: string;

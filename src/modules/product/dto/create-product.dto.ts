@@ -1,6 +1,18 @@
-import { IsString, IsNumber, IsOptional, IsEnum, IsArray, IsBoolean, Min, IsUrl } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsEnum, IsArray, IsBoolean, Min, IsUrl, ValidateNested } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductType, StockStatus, ProductStatus } from '../schemas/product.schema';
+import { Type } from 'class-transformer';
+
+class ProductColorDto {
+  @ApiProperty({ description: 'Color ID reference', type: String })
+  @IsString()
+  colorId: string;
+
+  @ApiPropertyOptional({ description: 'Optional image URL for this color', type: String })
+  @IsOptional()
+  @IsUrl()
+  imageUrl?: string;
+}
 
 export class CreateProductDto {
   @ApiProperty({ description: 'Product name' })
@@ -111,6 +123,16 @@ export class CreateProductDto {
     altText?: string;
     position: number;
   }[];
+
+  @ApiPropertyOptional({
+    description: 'Available colors with optional images',
+    type: [ProductColorDto],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductColorDto)
+  colors?: ProductColorDto[];
 
   @ApiPropertyOptional({ description: 'Product variations' })
   @IsOptional()

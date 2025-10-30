@@ -30,13 +30,36 @@ async function createApp(): Promise<NestExpressApplication> {
   // Static assets from /public
   app.useStaticAssets(join(__dirname, '..', 'public'));
 
-  // CORS configuration - Allow all origins for Vercel deployment
+  // CORS configuration tailored for Next.js (supports exact origins and suffix-based matches like .vercel.app)
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+
+  const allowedOriginSuffixes = (process.env.ALLOWED_ORIGIN_SUFFIXES || '.vercel.app')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: true,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      const wildcardAllowed = allowedOrigins.includes('*');
+      const exactAllowed = allowedOrigins.includes(origin);
+      const suffixAllowed = allowedOriginSuffixes.some(suffix => origin.endsWith(suffix));
+
+      if (wildcardAllowed || exactAllowed || suffixAllowed) {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
-    methods: '*',
-    allowedHeaders: '*',
-    exposedHeaders: '*',
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    exposedHeaders: ['Content-Range', 'X-Total-Count'],
+    maxAge: 600,
   });
 
   // Set global prefix

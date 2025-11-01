@@ -75,32 +75,81 @@ export class InventoryService {
     return savedInventory;
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Inventory>> {
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<any>> {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
-    
-    const [data, total] = await Promise.all([
-      this.inventoryModel.find().skip(skip).limit(limit).exec(),
-      this.inventoryModel.countDocuments()
+
+    const [docs, total] = await Promise.all([
+      this.inventoryModel
+        .find()
+        .skip(skip)
+        .limit(limit)
+        .populate({ path: 'productId', select: 'name sku images' })
+        .exec(),
+      this.inventoryModel.countDocuments(),
     ]);
-    
+
+    const data = docs.map((inv: any) => {
+      const obj = inv.toObject ? inv.toObject() : inv;
+      const product = obj.productId || {};
+      const firstImage = Array.isArray(product.images) && product.images.length > 0
+        ? (typeof product.images[0] === 'string' ? product.images[0] : product.images[0]?.url)
+        : undefined;
+      return {
+        ...obj,
+        productName: obj.productName || product.name,
+        sku: obj.sku || product.sku,
+        productImage: obj.productImage || firstImage,
+      };
+    });
+
     return {
       data,
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     };
   }
 
-  async findLowStock(): Promise<Inventory[]> {
-    return await this.inventoryModel.find({
-      $expr: { $lte: ['$currentStock', '$lowStockThreshold'] }
-    }).exec();
+  async findLowStock(): Promise<any[]> {
+    const docs = await this.inventoryModel
+      .find({ $expr: { $lte: ['$currentStock', '$lowStockThreshold'] } })
+      .populate({ path: 'productId', select: 'name sku images' })
+      .exec();
+    return docs.map((inv: any) => {
+      const obj = inv.toObject ? inv.toObject() : inv;
+      const product = obj.productId || {};
+      const firstImage = Array.isArray(product.images) && product.images.length > 0
+        ? (typeof product.images[0] === 'string' ? product.images[0] : product.images[0]?.url)
+        : undefined;
+      return {
+        ...obj,
+        productName: obj.productName || product.name,
+        sku: obj.sku || product.sku,
+        productImage: obj.productImage || firstImage,
+      };
+    });
   }
 
-  async findOutOfStock(): Promise<Inventory[]> {
-    return await this.inventoryModel.find({ currentStock: 0 }).exec();
+  async findOutOfStock(): Promise<any[]> {
+    const docs = await this.inventoryModel
+      .find({ currentStock: 0 })
+      .populate({ path: 'productId', select: 'name sku images' })
+      .exec();
+    return docs.map((inv: any) => {
+      const obj = inv.toObject ? inv.toObject() : inv;
+      const product = obj.productId || {};
+      const firstImage = Array.isArray(product.images) && product.images.length > 0
+        ? (typeof product.images[0] === 'string' ? product.images[0] : product.images[0]?.url)
+        : undefined;
+      return {
+        ...obj,
+        productName: obj.productName || product.name,
+        sku: obj.sku || product.sku,
+        productImage: obj.productImage || firstImage,
+      };
+    });
   }
 
   async getInventoryStats() {
@@ -118,8 +167,24 @@ export class InventoryService {
     };
   }
 
-  async findByProduct(productId: string): Promise<Inventory[]> {
-    return await this.inventoryModel.find({ productId }).exec();
+  async findByProduct(productId: string): Promise<any[]> {
+    const docs = await this.inventoryModel
+      .find({ productId })
+      .populate({ path: 'productId', select: 'name sku images' })
+      .exec();
+    return docs.map((inv: any) => {
+      const obj = inv.toObject ? inv.toObject() : inv;
+      const product = obj.productId || {};
+      const firstImage = Array.isArray(product.images) && product.images.length > 0
+        ? (typeof product.images[0] === 'string' ? product.images[0] : product.images[0]?.url)
+        : undefined;
+      return {
+        ...obj,
+        productName: obj.productName || product.name,
+        sku: obj.sku || product.sku,
+        productImage: obj.productImage || firstImage,
+      };
+    });
   }
 
   async updateInventory(id: string, updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {

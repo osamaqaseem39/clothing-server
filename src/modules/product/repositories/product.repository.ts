@@ -17,6 +17,8 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
   async findById(id: string): Promise<ProductDocument | null> {
     return await this.productModel
       .findById(id)
+      .populate('brand', 'name slug logo')
+      .populate('categories', 'name slug')
       .populate('images')
       .populate('variations')
       .exec();
@@ -38,6 +40,7 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
         .sort(sortOption)
         .skip(skip)
         .limit(limit)
+        .populate('brand', 'name slug logo')
         .populate('images')
         .exec(),
       this.productModel.countDocuments().exec(),
@@ -53,7 +56,13 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
   }
 
   async findBySlug(slug: string): Promise<ProductDocument | null> {
-    return await this.productModel.findOne({ slug }).exec();
+    return await this.productModel
+      .findOne({ slug })
+      .populate('brand', 'name slug logo')
+      .populate('categories', 'name slug')
+      .populate('images')
+      .populate('variations')
+      .exec();
   }
 
   async findBySku(sku: string): Promise<ProductDocument | null> {
@@ -72,6 +81,7 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
         .sort(sortOption)
         .skip(skip)
         .limit(limit)
+        .populate('brand', 'name slug logo')
         .populate('categories', 'name slug')
         .populate('tags', 'name slug')
         .populate('images', 'url altText position')
@@ -114,6 +124,7 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
         .sort(sortOption)
         .skip(skip)
         .limit(limit)
+        .populate('brand', 'name slug logo')
         .populate('categories', 'name slug')
         .populate('tags', 'name slug')
         .populate('images', 'url altText position')
@@ -183,6 +194,7 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
         .sort(sortOption)
         .skip(skip)
         .limit(limit)
+        .populate('brand', 'name slug logo')
         .populate('categories', 'name slug')
         .populate('tags', 'name slug')
         .populate('images', 'url altText position')

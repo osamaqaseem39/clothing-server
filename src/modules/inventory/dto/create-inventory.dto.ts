@@ -11,6 +11,11 @@ export class CreateInventoryDto {
   @IsMongoId()
   variantId?: string;
 
+  @ApiProperty({ description: 'Product size (for size-wise inventory management)', required: false })
+  @IsOptional()
+  @IsString()
+  size?: string;
+
   @ApiProperty({ description: 'Initial stock quantity', example: 100 })
   @IsNumber()
   @Min(0)

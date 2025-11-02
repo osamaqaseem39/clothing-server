@@ -101,8 +101,12 @@ export class InventoryController {
     type: [Inventory],
   })
   @ApiParam({ name: 'productId', description: 'Product ID' })
-  async findByProduct(@Param('productId') productId: string): Promise<Inventory[]> {
-    return await this.inventoryService.findByProduct(productId);
+  @ApiQuery({ name: 'size', required: false, description: 'Filter by size' })
+  async findByProduct(
+    @Param('productId') productId: string,
+    @Query('size') size?: string,
+  ): Promise<Inventory[]> {
+    return await this.inventoryService.findByProduct(productId, size);
   }
 
   @Get(':id')

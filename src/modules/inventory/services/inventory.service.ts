@@ -167,9 +167,13 @@ export class InventoryService {
     };
   }
 
-  async findByProduct(productId: string): Promise<any[]> {
+  async findByProduct(productId: string, size?: string): Promise<any[]> {
+    const query: any = { productId };
+    if (size) {
+      query.size = size;
+    }
     const docs = await this.inventoryModel
-      .find({ productId })
+      .find(query)
       .populate({ path: 'productId', select: 'name sku images' })
       .exec();
     return docs.map((inv: any) => {

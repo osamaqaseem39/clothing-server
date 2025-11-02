@@ -76,6 +76,70 @@ export class ProductController {
     return await this.productService.findPublishedProducts(paginationDto);
   }
 
+  @Get('filter-options')
+  @ApiOperation({ summary: 'Get filter options from published products' })
+  @ApiResponse({
+    status: 200,
+    description: 'Filter options retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        categories: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              _id: { type: 'string' },
+              name: { type: 'string' },
+              slug: { type: 'string' },
+            },
+          },
+        },
+        brands: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              _id: { type: 'string' },
+              name: { type: 'string' },
+              slug: { type: 'string' },
+            },
+          },
+        },
+        sizes: { type: 'array', items: { type: 'string' } },
+        colors: { type: 'array', items: { type: 'string' } },
+        priceRange: {
+          type: 'object',
+          properties: {
+            min: { type: 'number' },
+            max: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  async getFilterOptions(): Promise<{
+    categories: Array<{ _id: string; name: string; slug: string }>;
+    brands: Array<{ _id: string; name: string; slug: string }>;
+    sizes: string[];
+    colors: string[];
+    priceRange: { min: number; max: number };
+  }> {
+    try {
+      return await this.productService.getFilterOptions();
+    } catch (error) {
+      console.error('Error in getFilterOptions controller:', error);
+      // Return empty defaults instead of throwing to prevent 500 errors
+      return {
+        categories: [],
+        brands: [],
+        sizes: [],
+        colors: [],
+        priceRange: { min: 0, max: 10000 },
+      };
+    }
+  }
+
   @Get('search')
   @ApiOperation({ summary: 'Search products by query' })
   @ApiResponse({

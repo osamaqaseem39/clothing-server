@@ -404,4 +404,14 @@ export class ProductService extends BaseService<ProductDocument> {
 
     return await this.productRepository.update(productId, updateData);
   }
+
+  async getFilterOptions(): Promise<{
+    categories: Array<{ _id: string; name: string; slug: string }>;
+    brands: Array<{ _id: string; name: string; slug: string }>;
+    sizes: string[];
+    colors: string[];
+    priceRange: { min: number; max: number };
+  }> {
+    return await this.productRepository.getFilterOptions();
+  }
 } 

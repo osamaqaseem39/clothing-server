@@ -154,6 +154,7 @@ export class Product {
       bust: { type: String },
       waist: { type: String },
       hips: { type: String },
+      sizeWearing: { type: String },
     },
   })
   modelMeasurements?: {
@@ -161,6 +162,7 @@ export class Product {
     bust: string;
     waist: string;
     hips: string;
+    sizeWearing: string;
   };
 
   @ApiProperty({ description: 'Designer/Design House name' })

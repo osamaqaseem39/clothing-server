@@ -210,4 +210,123 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
       totalPages: Math.ceil(total / limit),
     };
   }
+
+  async getFilterOptions(): Promise<{
+    categories: Array<{ _id: string; name: string; slug: string }>;
+    brands: Array<{ _id: string; name: string; slug: string }>;
+    sizes: string[];
+    colors: string[];
+    priceRange: { min: number; max: number };
+  }> {
+    try {
+      const publishedProducts = await this.productModel
+        .find({ status: 'published' })
+        .populate('brand', 'name slug _id')
+        .populate('categories', 'name slug _id')
+        .lean()
+        .exec();
+
+      // Get unique categories
+      const categoryMap = new Map<string, { _id: string; name: string; slug: string }>();
+      if (Array.isArray(publishedProducts)) {
+        publishedProducts.forEach((product: any) => {
+          if (product.categories && Array.isArray(product.categories)) {
+            product.categories.forEach((cat: any) => {
+              if (cat && typeof cat === 'object' && cat._id && cat.name) {
+                categoryMap.set(cat._id.toString(), {
+                  _id: cat._id.toString(),
+                  name: cat.name,
+                  slug: cat.slug || '',
+                });
+              }
+            });
+          }
+        });
+      }
+
+      // Get unique brands
+      const brandMap = new Map<string, { _id: string; name: string; slug: string }>();
+      if (Array.isArray(publishedProducts)) {
+        publishedProducts.forEach((product: any) => {
+          const brand: any = product.brand;
+          if (brand && typeof brand === 'object' && brand._id && brand.name && !Array.isArray(brand)) {
+            const brandId = brand._id.toString();
+            const brandName = brand.name;
+            const brandSlug = brand.slug || '';
+            brandMap.set(brandId, {
+              _id: brandId,
+              name: brandName,
+              slug: brandSlug,
+            });
+          }
+        });
+      }
+
+      // Get unique sizes
+      const sizeSet = new Set<string>();
+      if (Array.isArray(publishedProducts)) {
+        publishedProducts.forEach((product: any) => {
+          if (product.availableSizes && Array.isArray(product.availableSizes) && product.availableSizes.length > 0) {
+            product.availableSizes.forEach((size: string) => {
+              if (size && typeof size === 'string') sizeSet.add(size);
+            });
+          }
+        });
+      }
+
+      // Get unique colors - handle both string arrays and object arrays
+      const colorSet = new Set<string>();
+      if (Array.isArray(publishedProducts)) {
+        publishedProducts.forEach((product: any) => {
+          if (product.colors && Array.isArray(product.colors)) {
+            product.colors.forEach((colorItem: any) => {
+              if (typeof colorItem === 'string') {
+                colorSet.add(colorItem);
+              } else if (colorItem && typeof colorItem === 'object') {
+                // Handle colorId reference or colorName
+                if (colorItem.colorName) {
+                  colorSet.add(colorItem.colorName);
+                } else if (colorItem.name) {
+                  colorSet.add(colorItem.name);
+                } else if (colorItem.color) {
+                  colorSet.add(colorItem.color);
+                }
+              }
+            });
+          }
+        });
+      }
+
+      // Get price range
+      const prices: number[] = [];
+      if (Array.isArray(publishedProducts)) {
+        publishedProducts.forEach((product: any) => {
+          if (product.price && typeof product.price === 'number' && product.price > 0) {
+            prices.push(product.price);
+          }
+        });
+      }
+      
+      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+      const maxPrice = prices.length > 0 ? Math.max(...prices) : 10000;
+
+      return {
+        categories: Array.from(categoryMap.values()).sort((a, b) => a.name.localeCompare(b.name)),
+        brands: Array.from(brandMap.values()).sort((a, b) => a.name.localeCompare(b.name)),
+        sizes: Array.from(sizeSet).sort(),
+        colors: Array.from(colorSet).sort(),
+        priceRange: { min: minPrice, max: maxPrice },
+      };
+    } catch (error) {
+      console.error('Error in getFilterOptions:', error);
+      // Return empty defaults on error
+      return {
+        categories: [],
+        brands: [],
+        sizes: [],
+        colors: [],
+        priceRange: { min: 0, max: 10000 },
+      };
+    }
+  }
 } 

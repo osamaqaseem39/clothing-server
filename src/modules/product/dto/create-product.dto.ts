@@ -172,6 +172,7 @@ export class CreateProductDto {
     bust: string;
     waist: string;
     hips: string;
+    sizeWearing: string;
   };
 
   @ApiPropertyOptional({ description: 'Designer/Design House name' })

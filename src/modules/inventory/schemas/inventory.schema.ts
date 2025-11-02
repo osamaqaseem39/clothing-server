@@ -17,6 +17,10 @@ export class Inventory {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'ProductVariant' })
   variantId?: string;
 
+  @ApiProperty({ description: 'Product size (for size-wise inventory management)' })
+  @Prop({ type: String, trim: true })
+  size?: string;
+
   @ApiProperty({ description: 'Current stock quantity' })
   @Prop({ required: true, min: 0 })
   currentStock: number;
@@ -79,6 +83,7 @@ export const InventorySchema = SchemaFactory.createForClass(Inventory);
 
 // Indexes
 InventorySchema.index({ productId: 1, variantId: 1 });
+InventorySchema.index({ productId: 1, size: 1 });
 InventorySchema.index({ warehouse: 1 });
 InventorySchema.index({ status: 1 });
 InventorySchema.index({ currentStock: 1 });

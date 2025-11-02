@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Body,
+  Put,
   Patch,
   Param,
   Delete,
@@ -155,8 +156,36 @@ export class ProductController {
     return await this.productService.findById(id);
   }
 
+  @Put(':id')
+  @ApiOperation({ summary: 'Update product (PUT)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Product updated successfully',
+    type: Product,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation error',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Product not found',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict - product with same slug or SKU already exists',
+  })
+  @ApiParam({ name: 'id', description: 'Product ID' })
+  @ApiBody({ type: UpdateProductDto })
+  async updatePut(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
+    return await this.productService.updateProduct(id, updateProductDto);
+  }
+
   @Patch(':id')
-  @ApiOperation({ summary: 'Update product' })
+  @ApiOperation({ summary: 'Update product (PATCH)' })
   @ApiResponse({
     status: 200,
     description: 'Product updated successfully',

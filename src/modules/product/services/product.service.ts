@@ -43,14 +43,6 @@ export class ProductService extends BaseService<ProductDocument> {
     }
 
     try {
-      // Find existing inventory record for this product
-      const existingInventory = await this.inventoryService.findByProduct(product._id.toString());
-      const inventoryRecord = existingInventory.length > 0 ? existingInventory[0] : null;
-
-      const stockQuantity = updateProductDto?.stockQuantity !== undefined 
-        ? updateProductDto.stockQuantity 
-        : product.stockQuantity;
-      
       const stockStatus = updateProductDto?.stockStatus !== undefined
         ? updateProductDto.stockStatus
         : product.stockStatus;
@@ -59,29 +51,102 @@ export class ProductService extends BaseService<ProductDocument> {
         ? updateProductDto.originalPrice
         : (product.originalPrice || 0);
 
-      if (inventoryRecord) {
-        // Update existing inventory record
-        await this.inventoryService.updateInventory(inventoryRecord._id.toString(), {
-          currentStock: stockQuantity,
-          availableStock: stockQuantity - (inventoryRecord.reservedStock || 0),
-          sellingPrice: updateProductDto?.price !== undefined ? updateProductDto.price : product.price,
-          costPrice: costPrice || inventoryRecord.costPrice,
-          status: this.mapStockStatusToInventoryStatus(stockStatus),
-        });
+      const sellingPrice = updateProductDto?.price !== undefined ? updateProductDto.price : product.price;
+
+      // Check if product has size-wise inventory
+      const hasSizes = product.availableSizes && product.availableSizes.length > 0;
+      const sizeInventory = (updateProductDto as any)?.sizeInventory || [];
+
+      if (hasSizes && sizeInventory && sizeInventory.length > 0) {
+        // Handle size-wise inventory
+        const existingInventory = await this.inventoryService.findByProduct(product._id.toString());
+        
+        // Process each size
+        for (const sizeItem of sizeInventory) {
+          const size = sizeItem.size;
+          const stockQuantity = sizeItem.quantity || 0;
+          
+          // Find existing inventory record for this size
+          const sizeInventoryRecord = existingInventory.find(inv => inv.size === size);
+          
+          if (sizeInventoryRecord) {
+            // Update existing inventory record for this size
+            await this.inventoryService.updateInventory(sizeInventoryRecord._id.toString(), {
+              currentStock: stockQuantity,
+              availableStock: stockQuantity - (sizeInventoryRecord.reservedStock || 0),
+              sellingPrice: sellingPrice,
+              costPrice: costPrice || sizeInventoryRecord.costPrice,
+              status: this.mapStockStatusToInventoryStatus(stockStatus),
+            });
+          } else {
+            // Create new inventory record for this size
+            await this.inventoryService.createInventory({
+              productId: product._id.toString(),
+              size: size,
+              currentStock: stockQuantity,
+              availableStock: stockQuantity,
+              reservedStock: 0,
+              reorderPoint: Math.max(10, Math.floor(stockQuantity * 0.1)),
+              reorderQuantity: Math.max(50, Math.floor(stockQuantity * 0.5)),
+              costPrice: costPrice || 0,
+              sellingPrice: sellingPrice,
+              warehouse: 'main',
+              status: this.mapStockStatusToInventoryStatus(stockStatus),
+            });
+          }
+        }
+
+        // Remove inventory records for sizes that are no longer in availableSizes
+        const currentSizes = product.availableSizes || [];
+        const inventoryToRemove = existingInventory.filter(inv => 
+          inv.size && !currentSizes.includes(inv.size)
+        );
+        for (const inv of inventoryToRemove) {
+          await this.inventoryService.deleteInventory(inv._id.toString());
+        }
       } else {
-        // Create new inventory record
-        await this.inventoryService.createInventory({
-          productId: product._id.toString(),
-          currentStock: stockQuantity,
-          availableStock: stockQuantity,
-          reservedStock: 0,
-          reorderPoint: Math.max(10, Math.floor(stockQuantity * 0.1)), // Default to 10% of stock or 10 minimum
-          reorderQuantity: Math.max(50, Math.floor(stockQuantity * 0.5)), // Default to 50% of stock or 50 minimum
-          costPrice: costPrice || 0,
-          sellingPrice: product.price,
-          warehouse: 'main',
-          status: this.mapStockStatusToInventoryStatus(stockStatus),
-        });
+        // Handle single inventory record (no sizes)
+        const existingInventory = await this.inventoryService.findByProduct(product._id.toString());
+        // Filter out size-specific inventory records
+        const nonSizeInventory = existingInventory.filter(inv => !inv.size);
+        const inventoryRecord = nonSizeInventory.length > 0 ? nonSizeInventory[0] : null;
+
+        const stockQuantity = updateProductDto?.stockQuantity !== undefined 
+          ? updateProductDto.stockQuantity 
+          : product.stockQuantity;
+
+        if (inventoryRecord) {
+          // Update existing inventory record
+          await this.inventoryService.updateInventory(inventoryRecord._id.toString(), {
+            currentStock: stockQuantity,
+            availableStock: stockQuantity - (inventoryRecord.reservedStock || 0),
+            sellingPrice: sellingPrice,
+            costPrice: costPrice || inventoryRecord.costPrice,
+            status: this.mapStockStatusToInventoryStatus(stockStatus),
+          });
+        } else {
+          // Create new inventory record
+          await this.inventoryService.createInventory({
+            productId: product._id.toString(),
+            currentStock: stockQuantity,
+            availableStock: stockQuantity,
+            reservedStock: 0,
+            reorderPoint: Math.max(10, Math.floor(stockQuantity * 0.1)),
+            reorderQuantity: Math.max(50, Math.floor(stockQuantity * 0.5)),
+            costPrice: costPrice || 0,
+            sellingPrice: sellingPrice,
+            warehouse: 'main',
+            status: this.mapStockStatusToInventoryStatus(stockStatus),
+          });
+        }
+
+        // If product previously had sizes but now doesn't, remove size-specific inventory
+        if (existingInventory.some(inv => inv.size)) {
+          const sizeInventoryToRemove = existingInventory.filter(inv => inv.size);
+          for (const inv of sizeInventoryToRemove) {
+            await this.inventoryService.deleteInventory(inv._id.toString());
+          }
+        }
       }
     } catch (error) {
       // Log error but don't fail product creation/update

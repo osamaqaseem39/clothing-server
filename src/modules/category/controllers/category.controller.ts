@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Patch,
+  Put,
   Param,
   Delete,
   Query,
@@ -165,6 +166,7 @@ export class CategoryController {
   }
 
   @Patch(':id')
+  @Put(':id')
   @ApiOperation({ summary: 'Update category' })
   @ApiResponse({
     status: 200,

@@ -263,47 +263,57 @@ export class ShippingService {
   async findDeliveryChargeForLocation(shippingAddress: any): Promise<DeliveryChargeDocument | null> {
     const { country, state, city, postalCode } = shippingAddress;
     
+    // Normalize input values
+    const normalizedCountry = country?.trim().toUpperCase() || '';
+    const normalizedState = state?.trim() || '';
+    const normalizedCity = city?.trim() || '';
+    const normalizedPostalCode = postalCode?.trim() || '';
+    
     // Build query conditions based on available address fields
     // Priority order: postal_code > city > state > country
     const queries = [];
     
     // Try to find by postal code first (most specific)
-    if (postalCode) {
+    if (normalizedPostalCode) {
       queries.push({
         enabled: true,
         locationType: 'postal_code',
-        country,
-        postalCode: postalCode.trim(),
+        country: normalizedCountry,
+        postalCode: normalizedPostalCode,
       });
     }
     
-    // Try to find by city
-    if (city) {
+    // Try to find by city (most specific for city-based charges like Lahore)
+    if (normalizedCity) {
       queries.push({
         enabled: true,
         locationType: 'city',
-        country,
-        state: state || { $exists: false },
-        city: city.trim(),
+        country: normalizedCountry,
+        $or: [
+          { state: normalizedState },
+          { state: { $exists: false } }
+        ],
+        city: { $regex: new RegExp(`^${normalizedCity}$`, 'i') }, // Case-insensitive match
       });
     }
     
-    // Try to find by state
-    if (state) {
+    // Try to find by state (for state-level charges like Punjab, excluding specific cities)
+    if (normalizedState) {
+      // First, try exact state match without city requirement
       queries.push({
         enabled: true,
         locationType: 'state',
-        country,
-        state: state.trim(),
-        city: { $exists: false },
+        country: normalizedCountry,
+        state: { $regex: new RegExp(`^${normalizedState}$`, 'i') }, // Case-insensitive match
+        // Don't require city to not exist - we'll handle city exclusions in priority
       });
     }
     
-    // Try to find by country (least specific)
+    // Try to find by country (least specific - for outside province charges)
     queries.push({
       enabled: true,
       locationType: 'country',
-      country,
+      country: normalizedCountry,
       state: { $exists: false },
       city: { $exists: false },
     });
@@ -312,11 +322,21 @@ export class ShippingService {
     for (const query of queries) {
       const charges = await this.deliveryChargeModel
         .find(query)
-        .sort({ priority: -1 })
-        .limit(1)
+        .sort({ priority: -1, locationType: 1 }) // Sort by priority first, then by specificity
         .exec();
       
       if (charges.length > 0) {
+        // If we have multiple matches, prefer city-level over state-level
+        // This ensures Lahore city charge (150) is selected over Punjab state charge (250)
+        if (normalizedCity && charges.length > 1) {
+          const cityCharge = charges.find(c => c.locationType === 'city' && 
+            c.city && new RegExp(`^${normalizedCity}$`, 'i').test(c.city));
+          if (cityCharge) {
+            return cityCharge;
+          }
+        }
+        
+        // Return the highest priority charge
         return charges[0];
       }
     }

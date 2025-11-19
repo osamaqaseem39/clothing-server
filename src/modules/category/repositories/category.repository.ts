@@ -26,11 +26,15 @@ export class CategoryRepository extends BaseRepository<CategoryDocument> {
   async findRootCategories(): Promise<CategoryDocument[]> {
     return this.categoryModel
       .find({ 
-        $or: [
-          { parentId: null },
-          { parentId: { $exists: false } }
-        ],
-        isActive: true 
+        $and: [
+          {
+            $or: [
+              { parentId: null },
+              { parentId: { $exists: false } }
+            ]
+          },
+          { isActive: true }
+        ]
       })
       .sort({ sortOrder: 1, name: 1 })
       .exec();

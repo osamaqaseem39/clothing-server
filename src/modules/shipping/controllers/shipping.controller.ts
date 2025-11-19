@@ -22,7 +22,10 @@ import {
 import { ShippingService } from '../services/shipping.service';
 import { CreateShippingMethodDto } from '../dto/create-shipping-method.dto';
 import { UpdateShippingMethodDto } from '../dto/update-shipping-method.dto';
+import { CreateDeliveryChargeDto } from '../dto/create-delivery-charge.dto';
+import { UpdateDeliveryChargeDto } from '../dto/update-delivery-charge.dto';
 import { ShippingMethod, ShippingMethodDocument } from '../schemas/shipping-method.schema';
+import { DeliveryCharge, DeliveryChargeDocument } from '../schemas/delivery-charge.schema';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 import { PaginatedResult } from '../../../common/interfaces/base.interface';
 
@@ -229,6 +232,10 @@ export class ShippingController {
           type: 'string',
           description: 'Order ID for shipping calculation',
         },
+        orderTotal: {
+          type: 'number',
+          description: 'Total order amount (for free shipping threshold calculation)',
+        },
         shippingAddress: {
           type: 'object',
           properties: {
@@ -237,12 +244,13 @@ export class ShippingController {
             city: { type: 'string', description: 'City' },
             postalCode: { type: 'string', description: 'Postal code' },
           },
-          required: ['country', 'city'],
+          required: ['country'],
         },
         packageDetails: {
           type: 'object',
           properties: {
             weight: { type: 'number', description: 'Package weight in kg' },
+            itemCount: { type: 'number', description: 'Number of items in the package' },
             dimensions: {
               type: 'object',
               properties: {
@@ -326,5 +334,139 @@ export class ShippingController {
   @ApiParam({ name: 'trackingNumber', description: 'Shipment tracking number' })
   async trackShipment(@Param('trackingNumber') trackingNumber: string) {
     return await this.shippingService.trackShipment(trackingNumber);
+  }
+
+  // Delivery Charge Endpoints
+  @Post('delivery-charges')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ 
+    summary: 'Create a new delivery charge',
+    description: 'Add a new location-based delivery charge'
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Delivery charge created successfully',
+    type: DeliveryCharge,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation error',
+  })
+  @ApiBody({ type: CreateDeliveryChargeDto })
+  async createDeliveryCharge(@Body() createDeliveryChargeDto: CreateDeliveryChargeDto): Promise<DeliveryChargeDocument> {
+    return await this.shippingService.createDeliveryCharge(createDeliveryChargeDto);
+  }
+
+  @Get('delivery-charges')
+  @ApiOperation({ 
+    summary: 'Get all delivery charges',
+    description: 'Retrieve all location-based delivery charges'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Delivery charges retrieved successfully',
+    type: [DeliveryCharge],
+  })
+  async findAllDeliveryCharges(): Promise<DeliveryChargeDocument[]> {
+    return await this.shippingService.findAllDeliveryCharges();
+  }
+
+  @Get('delivery-charges/:id')
+  @ApiOperation({ 
+    summary: 'Get delivery charge by ID',
+    description: 'Retrieve a specific delivery charge by its ID'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Delivery charge retrieved successfully',
+    type: DeliveryCharge,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Delivery charge not found',
+  })
+  @ApiParam({ name: 'id', description: 'Delivery charge ID' })
+  async findDeliveryChargeById(@Param('id') id: string): Promise<DeliveryChargeDocument> {
+    return await this.shippingService.findDeliveryChargeById(id);
+  }
+
+  @Patch('delivery-charges/:id')
+  @ApiOperation({ 
+    summary: 'Update delivery charge',
+    description: 'Update an existing delivery charge'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Delivery charge updated successfully',
+    type: DeliveryCharge,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation error',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Delivery charge not found',
+  })
+  @ApiParam({ name: 'id', description: 'Delivery charge ID' })
+  @ApiBody({ type: UpdateDeliveryChargeDto })
+  async updateDeliveryCharge(
+    @Param('id') id: string,
+    @Body() updateDeliveryChargeDto: UpdateDeliveryChargeDto,
+  ): Promise<DeliveryChargeDocument> {
+    return await this.shippingService.updateDeliveryCharge(id, updateDeliveryChargeDto);
+  }
+
+  @Patch('delivery-charges/:id/status')
+  @ApiOperation({ 
+    summary: 'Toggle delivery charge status',
+    description: 'Enable or disable a delivery charge'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Delivery charge status updated successfully',
+    type: DeliveryCharge,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Delivery charge not found',
+  })
+  @ApiParam({ name: 'id', description: 'Delivery charge ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        enabled: {
+          type: 'boolean',
+          description: 'Whether the delivery charge should be enabled',
+        },
+      },
+      required: ['enabled'],
+    },
+  })
+  async toggleDeliveryChargeStatus(
+    @Param('id') id: string,
+    @Body('enabled') enabled: boolean,
+  ): Promise<DeliveryChargeDocument> {
+    return await this.shippingService.toggleDeliveryChargeStatus(id, enabled);
+  }
+
+  @Delete('delivery-charges/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ 
+    summary: 'Delete delivery charge',
+    description: 'Delete a delivery charge'
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'Delivery charge deleted successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Delivery charge not found',
+  })
+  @ApiParam({ name: 'id', description: 'Delivery charge ID' })
+  async removeDeliveryCharge(@Param('id') id: string): Promise<void> {
+    await this.shippingService.deleteDeliveryCharge(id);
   }
 } 

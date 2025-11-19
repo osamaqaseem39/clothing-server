@@ -2,13 +2,17 @@ import { Injectable, NotFoundException, ConflictException, BadRequestException }
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ShippingMethod, ShippingMethodDocument } from '../schemas/shipping-method.schema';
+import { DeliveryCharge, DeliveryChargeDocument } from '../schemas/delivery-charge.schema';
 import { CreateShippingMethodDto } from '../dto/create-shipping-method.dto';
 import { UpdateShippingMethodDto } from '../dto/update-shipping-method.dto';
+import { CreateDeliveryChargeDto } from '../dto/create-delivery-charge.dto';
+import { UpdateDeliveryChargeDto } from '../dto/update-delivery-charge.dto';
 
 @Injectable()
 export class ShippingService {
   constructor(
     @InjectModel(ShippingMethod.name) private readonly shippingMethodModel: Model<ShippingMethodDocument>,
+    @InjectModel(DeliveryCharge.name) private readonly deliveryChargeModel: Model<DeliveryChargeDocument>,
   ) {}
 
   async createShippingMethod(createShippingMethodDto: CreateShippingMethodDto): Promise<ShippingMethodDocument> {
@@ -86,26 +90,47 @@ export class ShippingService {
   }
 
   async calculateShipping(calculateShippingDto: any): Promise<any> {
-    const { shippingAddress, packageDetails, orderId } = calculateShippingDto;
+    const { shippingAddress, packageDetails, orderId, orderTotal } = calculateShippingDto;
+    
+    // First, try to find location-based delivery charge
+    const deliveryCharge = await this.findDeliveryChargeForLocation(shippingAddress);
     
     // Get available shipping methods for the destination
     const availableMethods = await this.getAvailableMethodsForDestination(shippingAddress);
     
-    if (availableMethods.length === 0) {
+    if (availableMethods.length === 0 && !deliveryCharge) {
       throw new BadRequestException('No shipping methods available for this destination');
     }
 
-    // Calculate costs for each method
+    // Calculate costs for each method, using delivery charge if available
     const methodsWithCosts = availableMethods.map(method => {
-      const cost = this.calculateMethodCost(method, packageDetails);
+      let cost = this.calculateMethodCost(method, packageDetails);
+      
+      // If delivery charge exists, use it instead or add to base cost
+      if (deliveryCharge) {
+        cost = this.calculateDeliveryCharge(deliveryCharge, packageDetails, orderTotal || 0);
+      }
+      
       return {
         methodId: method._id,
         name: method.name,
         cost,
-        estimatedDays: method.estimatedDeliveryDays || 3,
+        estimatedDays: deliveryCharge?.estimatedDeliveryDays || method.estimatedDeliveryDays || 3,
         description: method.description || '',
       };
     });
+
+    // If we have delivery charge but no methods, create a default method
+    if (deliveryCharge && methodsWithCosts.length === 0) {
+      const cost = this.calculateDeliveryCharge(deliveryCharge, packageDetails, orderTotal || 0);
+      methodsWithCosts.push({
+        methodId: null,
+        name: 'Standard Delivery',
+        cost,
+        estimatedDays: deliveryCharge.estimatedDeliveryDays || 3,
+        description: `Delivery to ${deliveryCharge.locationName}`,
+      });
+    }
 
     // Sort by cost
     methodsWithCosts.sort((a, b) => a.cost - b.cost);
@@ -187,6 +212,150 @@ export class ShippingService {
     
     // Add additional costs based on package details if needed
     // For now, just return the base cost
+    return Math.max(0, cost);
+  }
+
+  // Delivery Charge Management Methods
+  async createDeliveryCharge(createDeliveryChargeDto: CreateDeliveryChargeDto): Promise<DeliveryChargeDocument> {
+    const deliveryCharge = new this.deliveryChargeModel(createDeliveryChargeDto);
+    return await deliveryCharge.save();
+  }
+
+  async findAllDeliveryCharges(): Promise<DeliveryChargeDocument[]> {
+    return await this.deliveryChargeModel.find().sort({ priority: -1, locationType: 1, locationName: 1 }).exec();
+  }
+
+  async findDeliveryChargeById(id: string): Promise<DeliveryChargeDocument> {
+    const deliveryCharge = await this.deliveryChargeModel.findById(id).exec();
+    if (!deliveryCharge) {
+      throw new NotFoundException(`Delivery charge with ID ${id} not found`);
+    }
+    return deliveryCharge;
+  }
+
+  async updateDeliveryCharge(id: string, updateDeliveryChargeDto: UpdateDeliveryChargeDto): Promise<DeliveryChargeDocument> {
+    await this.findDeliveryChargeById(id);
+
+    const updatedCharge = await this.deliveryChargeModel.findByIdAndUpdate(
+      id,
+      updateDeliveryChargeDto,
+      { new: true }
+    ).exec();
+
+    if (!updatedCharge) {
+      throw new NotFoundException(`Delivery charge with ID ${id} not found`);
+    }
+
+    return updatedCharge;
+  }
+
+  async toggleDeliveryChargeStatus(id: string, enabled: boolean): Promise<DeliveryChargeDocument> {
+    const deliveryCharge = await this.findDeliveryChargeById(id);
+    deliveryCharge.enabled = enabled;
+    return await deliveryCharge.save();
+  }
+
+  async deleteDeliveryCharge(id: string): Promise<void> {
+    await this.findDeliveryChargeById(id);
+    await this.deliveryChargeModel.findByIdAndDelete(id).exec();
+  }
+
+  async findDeliveryChargeForLocation(shippingAddress: any): Promise<DeliveryChargeDocument | null> {
+    const { country, state, city, postalCode } = shippingAddress;
+    
+    // Build query conditions based on available address fields
+    // Priority order: postal_code > city > state > country
+    const queries = [];
+    
+    // Try to find by postal code first (most specific)
+    if (postalCode) {
+      queries.push({
+        enabled: true,
+        locationType: 'postal_code',
+        country,
+        postalCode: postalCode.trim(),
+      });
+    }
+    
+    // Try to find by city
+    if (city) {
+      queries.push({
+        enabled: true,
+        locationType: 'city',
+        country,
+        state: state || { $exists: false },
+        city: city.trim(),
+      });
+    }
+    
+    // Try to find by state
+    if (state) {
+      queries.push({
+        enabled: true,
+        locationType: 'state',
+        country,
+        state: state.trim(),
+        city: { $exists: false },
+      });
+    }
+    
+    // Try to find by country (least specific)
+    queries.push({
+      enabled: true,
+      locationType: 'country',
+      country,
+      state: { $exists: false },
+      city: { $exists: false },
+    });
+    
+    // Execute queries in priority order and return first match
+    for (const query of queries) {
+      const charges = await this.deliveryChargeModel
+        .find(query)
+        .sort({ priority: -1 })
+        .limit(1)
+        .exec();
+      
+      if (charges.length > 0) {
+        return charges[0];
+      }
+    }
+    
+    return null;
+  }
+
+  private calculateDeliveryCharge(
+    deliveryCharge: DeliveryChargeDocument,
+    packageDetails: any,
+    orderTotal: number
+  ): number {
+    // Check if free shipping threshold is met
+    if (deliveryCharge.freeShippingThreshold && orderTotal >= deliveryCharge.freeShippingThreshold) {
+      return 0;
+    }
+    
+    // Check minimum/maximum order amount constraints
+    if (deliveryCharge.minimumOrderAmount && orderTotal < deliveryCharge.minimumOrderAmount) {
+      return deliveryCharge.baseCharge;
+    }
+    
+    if (deliveryCharge.maximumOrderAmount && orderTotal > deliveryCharge.maximumOrderAmount) {
+      return deliveryCharge.baseCharge;
+    }
+    
+    // Start with base charge
+    let cost = deliveryCharge.baseCharge;
+    
+    // Add per kg charge if weight is provided
+    if (deliveryCharge.chargePerKg && packageDetails?.weight) {
+      cost += deliveryCharge.chargePerKg * packageDetails.weight;
+    }
+    
+    // Add per item charge if item count is provided
+    if (deliveryCharge.chargePerItem && packageDetails?.itemCount) {
+      cost += deliveryCharge.chargePerItem * packageDetails.itemCount;
+    }
+    
     return Math.max(0, cost);
   }
 } 

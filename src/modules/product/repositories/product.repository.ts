@@ -297,12 +297,21 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
         });
       }
 
-      // Get price range
+      // Get price range - include sale prices
       const prices: number[] = [];
       if (Array.isArray(publishedProducts)) {
         publishedProducts.forEach((product: any) => {
-          if (product.price && typeof product.price === 'number' && product.price > 0) {
-            prices.push(product.price);
+          // Use salePrice if available and valid, otherwise use regular price
+          let productPrice: number | null = null;
+          
+          if (product.salePrice && typeof product.salePrice === 'number' && product.salePrice > 0) {
+            productPrice = product.salePrice;
+          } else if (product.price && typeof product.price === 'number' && product.price > 0) {
+            productPrice = product.price;
+          }
+          
+          if (productPrice !== null) {
+            prices.push(productPrice);
           }
         });
       }

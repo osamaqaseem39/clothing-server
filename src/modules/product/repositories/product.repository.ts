@@ -56,13 +56,40 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
   }
 
   async findBySlug(slug: string): Promise<ProductDocument | null> {
-    return await this.productModel
-      .findOne({ slug })
-      .populate('brand', 'name slug logo')
-      .populate('categories', 'name slug')
-      .populate('images')
-      .populate('variations')
-      .exec();
+    try {
+      const product = await this.productModel
+        .findOne({ slug })
+        .populate({
+          path: 'brand',
+          select: 'name slug logo',
+          strictPopulate: false,
+        })
+        .populate({
+          path: 'categories',
+          select: 'name slug',
+          strictPopulate: false,
+        })
+        .populate({
+          path: 'images',
+          strictPopulate: false,
+        })
+        .populate({
+          path: 'variations',
+          strictPopulate: false,
+        })
+        .exec();
+      
+      return product;
+    } catch (error) {
+      console.error('Error in findBySlug:', error);
+      // Try without populate if populate fails
+      try {
+        return await this.productModel.findOne({ slug }).exec();
+      } catch (fallbackError) {
+        console.error('Error in findBySlug fallback:', fallbackError);
+        throw fallbackError;
+      }
+    }
   }
 
   async findBySku(sku: string): Promise<ProductDocument | null> {

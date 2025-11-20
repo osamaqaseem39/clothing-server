@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, ConflictException, BadRequestException, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { BaseService } from '../../../common/services/base.service';
 import { ProductRepository } from '../repositories/product.repository';
 import { ProductDocument, StockStatus } from '../schemas/product.schema';
@@ -171,6 +171,18 @@ export class ProductService extends BaseService<ProductDocument> {
       throw new BadRequestException('Sale price must be less than regular price');
     }
 
+    // Auto-set isSale and originalPrice based on salePrice
+    if (createProductDto.salePrice && createProductDto.salePrice > 0 && createProductDto.salePrice < createProductDto.price) {
+      createProductDto.isSale = true;
+      // Set originalPrice to the regular price if not already set or if it's less than the regular price
+      if (!createProductDto.originalPrice || createProductDto.originalPrice < createProductDto.price) {
+        createProductDto.originalPrice = createProductDto.price;
+      }
+    } else if (!createProductDto.salePrice || createProductDto.salePrice === 0) {
+      // If no sale price, ensure isSale is false
+      createProductDto.isSale = false;
+    }
+
     // Auto-update stock status based on quantity
     if (createProductDto.manageStock) {
       if (createProductDto.stockQuantity > 0) {
@@ -180,6 +192,15 @@ export class ProductService extends BaseService<ProductDocument> {
       } else {
         createProductDto.stockStatus = StockStatus.OUTOFSTOCK;
       }
+    }
+
+    // Auto-set inStock based on stockStatus and stockQuantity
+    if (createProductDto.manageStock) {
+      createProductDto.inStock = createProductDto.stockStatus === StockStatus.INSTOCK && 
+                                  (createProductDto.stockQuantity > 0 || createProductDto.allowBackorders);
+    } else {
+      // If not managing stock, default to in stock
+      createProductDto.inStock = true;
     }
 
     // Handle image creation if provided
@@ -275,24 +296,80 @@ export class ProductService extends BaseService<ProductDocument> {
       }
     }
 
-    // Validate sale price
+    // Validate sale price and auto-set isSale and originalPrice
+    const currentProduct = await this.findById(id);
+    const price = updateProductDto.price !== undefined ? updateProductDto.price : currentProduct.price;
+    
     if (updateProductDto.salePrice !== undefined) {
-      const currentProduct = await this.findById(id);
-      const price = updateProductDto.price || currentProduct.price;
       if (updateProductDto.salePrice >= price) {
         throw new BadRequestException('Sale price must be less than regular price');
+      }
+      
+      // Auto-set isSale and originalPrice based on salePrice
+      if (updateProductDto.salePrice > 0 && updateProductDto.salePrice < price) {
+        updateProductDto.isSale = true;
+        // Set originalPrice to the regular price if not already set or if it's less than the regular price
+        const currentOriginalPrice = updateProductDto.originalPrice !== undefined 
+          ? updateProductDto.originalPrice 
+          : currentProduct.originalPrice;
+        if (!currentOriginalPrice || currentOriginalPrice < price) {
+          updateProductDto.originalPrice = price;
+        }
+      } else if (updateProductDto.salePrice === 0 || updateProductDto.salePrice === null) {
+        // If sale price is removed, set isSale to false
+        updateProductDto.isSale = false;
+      }
+    } else if (updateProductDto.price !== undefined) {
+      // If price is updated but salePrice is not, check if salePrice still makes sense
+      const currentSalePrice = currentProduct.salePrice;
+      if (currentSalePrice && currentSalePrice > 0 && currentSalePrice < price) {
+        // Sale price is still valid, ensure isSale is true
+        updateProductDto.isSale = true;
+        // Update originalPrice if needed
+        const currentOriginalPrice = updateProductDto.originalPrice !== undefined 
+          ? updateProductDto.originalPrice 
+          : currentProduct.originalPrice;
+        if (!currentOriginalPrice || currentOriginalPrice < price) {
+          updateProductDto.originalPrice = price;
+        }
+      } else if (currentSalePrice && currentSalePrice >= price) {
+        // Sale price is no longer valid, remove it
+        updateProductDto.isSale = false;
       }
     }
 
     // Auto-update stock status if stock quantity is being updated
-    if (updateProductDto.stockQuantity !== undefined && updateProductDto.manageStock !== false) {
+    const manageStock = updateProductDto.manageStock !== undefined 
+      ? updateProductDto.manageStock 
+      : currentProduct.manageStock;
+    const allowBackorders = updateProductDto.allowBackorders !== undefined 
+      ? updateProductDto.allowBackorders 
+      : currentProduct.allowBackorders;
+    
+    if (updateProductDto.stockQuantity !== undefined && manageStock) {
       if (updateProductDto.stockQuantity > 0) {
         updateProductDto.stockStatus = StockStatus.INSTOCK;
-      } else if (updateProductDto.allowBackorders) {
+      } else if (allowBackorders) {
         updateProductDto.stockStatus = StockStatus.ONBACKORDER;
       } else {
         updateProductDto.stockStatus = StockStatus.OUTOFSTOCK;
       }
+    }
+
+    // Auto-set inStock based on stockStatus and stockQuantity
+    const stockStatus = updateProductDto.stockStatus !== undefined 
+      ? updateProductDto.stockStatus 
+      : currentProduct.stockStatus;
+    const stockQuantity = updateProductDto.stockQuantity !== undefined 
+      ? updateProductDto.stockQuantity 
+      : currentProduct.stockQuantity;
+    
+    if (manageStock) {
+      updateProductDto.inStock = stockStatus === StockStatus.INSTOCK && 
+                                  (stockQuantity > 0 || allowBackorders);
+    } else {
+      // If not managing stock, default to in stock
+      updateProductDto.inStock = true;
     }
 
     // Handle image updates if provided
@@ -389,11 +466,21 @@ export class ProductService extends BaseService<ProductDocument> {
   }
 
   async findBySlug(slug: string): Promise<ProductDocument> {
-    const product = await this.productRepository.findBySlug(slug);
-    if (!product) {
-      throw new Error(`Product with slug '${slug}' not found`);
+    try {
+      const product = await this.productRepository.findBySlug(slug);
+      if (!product) {
+        throw new NotFoundException(`Product with slug '${slug}' not found`);
+      }
+      return product;
+    } catch (error) {
+      // If it's already a NestJS HTTP exception, re-throw it
+      if (error instanceof NotFoundException || error.status) {
+        throw error;
+      }
+      // Otherwise, log and wrap in NotFoundException
+      console.error(`Error finding product by slug '${slug}':`, error);
+      throw new NotFoundException(`Product with slug '${slug}' not found`);
     }
-    return product;
   }
 
   async findByCategory(categoryId: string, options?: PaginationOptions): Promise<PaginatedResult<ProductDocument>> {

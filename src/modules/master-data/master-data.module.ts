@@ -162,6 +162,7 @@ const SizeSchema = new Schema({
   slug: String,
   description: String,
   sizeType: String,
+  unit: { type: String, enum: ['cm', 'inch', 'US', 'UK', 'EU', 'none'], default: 'none' },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }

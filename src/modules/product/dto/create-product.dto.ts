@@ -259,4 +259,14 @@ export class CreateProductDto {
   @IsNumber()
   @Min(0)
   originalPrice?: number;
+
+  @ApiPropertyOptional({ description: 'Is this product on sale' })
+  @IsOptional()
+  @IsBoolean()
+  isSale?: boolean;
+
+  @ApiPropertyOptional({ description: 'Stock availability status' })
+  @IsOptional()
+  @IsBoolean()
+  inStock?: boolean;
 } 

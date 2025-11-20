@@ -8,6 +8,7 @@ export interface Size {
   slug?: string;
   description?: string;
   sizeType?: 'numeric' | 'alphabetic' | 'custom';
+  unit?: 'cm' | 'inch' | 'US' | 'UK' | 'EU' | 'none';
   isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

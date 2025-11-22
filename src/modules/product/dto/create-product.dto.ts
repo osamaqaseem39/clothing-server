@@ -14,6 +14,49 @@ class ProductColorDto {
   imageUrl?: string;
 }
 
+class ProductSEODto {
+  @ApiPropertyOptional({ description: 'SEO meta title', maxLength: 60 })
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @ApiPropertyOptional({ description: 'SEO meta description', maxLength: 160 })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiPropertyOptional({ description: 'SEO meta keywords', type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  keywords?: string[];
+
+  @ApiPropertyOptional({ description: 'SEO friendly URL slug' })
+  @IsOptional()
+  @IsString()
+  slug?: string;
+
+  @ApiPropertyOptional({ description: 'Canonical URL' })
+  @IsOptional()
+  @IsUrl()
+  canonicalUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Open Graph image URL' })
+  @IsOptional()
+  @IsUrl()
+  ogImage?: string;
+
+  @ApiPropertyOptional({ description: 'Prevent search engines from indexing', default: false })
+  @IsOptional()
+  @IsBoolean()
+  noIndex?: boolean;
+
+  @ApiPropertyOptional({ description: 'Prevent search engines from following links', default: false })
+  @IsOptional()
+  @IsBoolean()
+  noFollow?: boolean;
+}
+
 export class CreateProductDto {
   @ApiProperty({ description: 'Product name' })
   @IsString()
@@ -269,4 +312,10 @@ export class CreateProductDto {
   @IsOptional()
   @IsBoolean()
   inStock?: boolean;
+
+  @ApiPropertyOptional({ description: 'SEO data', type: ProductSEODto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ProductSEODto)
+  seo?: ProductSEODto;
 } 

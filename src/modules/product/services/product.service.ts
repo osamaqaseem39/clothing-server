@@ -219,10 +219,22 @@ export class ProductService extends BaseService<ProductDocument> {
     const variationsData = createProductDto.variations || [];
     delete createProductDto.variations;
 
+    // Ensure SEO fields have defaults if seo object is provided
+    let seoData: any = undefined;
+    if (createProductDto.seo) {
+      seoData = {
+        ...createProductDto.seo,
+        noIndex: createProductDto.seo.noIndex ?? false,
+        noFollow: createProductDto.seo.noFollow ?? false,
+      };
+    }
+
     // Create product data with image IDs
-    const productData = {
-      ...createProductDto,
+    const { seo: _, ...restCreateDto } = createProductDto;
+    const productData: any = {
+      ...restCreateDto,
       images: imageIds,
+      ...(seoData && { seo: seoData }),
     };
 
     const product = await this.productRepository.create(productData);
@@ -388,10 +400,22 @@ export class ProductService extends BaseService<ProductDocument> {
     const variationsData = updateProductDto.variations || [];
     delete updateProductDto.variations;
 
+    // Ensure SEO fields have defaults if seo object is provided
+    let seoData: any = undefined;
+    if (updateProductDto.seo) {
+      seoData = {
+        ...updateProductDto.seo,
+        noIndex: updateProductDto.seo.noIndex ?? false,
+        noFollow: updateProductDto.seo.noFollow ?? false,
+      };
+    }
+
     // Create update data with image IDs if provided
-    const updateData = {
-      ...updateProductDto,
+    const { seo: _, ...restUpdateDto } = updateProductDto;
+    const updateData: any = {
+      ...restUpdateDto,
       ...(imageIds && { images: imageIds }),
+      ...(seoData && { seo: seoData }),
     };
 
     // Update the base product

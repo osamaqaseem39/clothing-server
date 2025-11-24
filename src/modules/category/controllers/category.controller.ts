@@ -72,7 +72,9 @@ export class CategoryController {
     type: [Category],
   })
   async findActiveCategories(): Promise<Category[]> {
-    return await this.categoryService.findActiveCategories();
+    const categories = await this.categoryService.findActiveCategories();
+    // Ensure we always return an array, even if empty
+    return Array.isArray(categories) ? categories : [];
   }
 
   @Get('tree')

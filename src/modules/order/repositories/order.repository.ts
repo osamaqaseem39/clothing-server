@@ -13,6 +13,44 @@ export class OrderRepository extends BaseRepository<OrderDocument> {
     super(orderModel);
   }
 
+  async findAll(options?: PaginationOptions & { status?: OrderStatus; paymentStatus?: PaymentStatus }): Promise<PaginatedResult<OrderDocument>> {
+    const { page = 1, limit = 10, sort, sortBy, order = 'desc', sortOrder, status, paymentStatus } = options || {};
+    
+    // Build filter query
+    const filter: any = {};
+    if (status) filter.status = status;
+    if (paymentStatus) filter.paymentStatus = paymentStatus;
+    
+    // Use sortBy if provided, otherwise use sort
+    const sortField = sortBy || sort;
+    // Use sortOrder if provided, otherwise use order
+    const orderBy = sortOrder || order;
+    
+    const skip = (page - 1) * limit;
+    const sortOption = sortField ? { [sortField]: orderBy === 'desc' ? -1 : 1 } : { createdAt: -1 } as any;
+    
+    const [data, total] = await Promise.all([
+      this.orderModel
+        .find(filter)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limit)
+        .populate('customerId', 'firstName lastName email phone')
+        .populate('items.productId', 'name sku images')
+        .populate('items.variationId', 'sku price')
+        .exec(),
+      this.orderModel.countDocuments(filter).exec(),
+    ]);
+
+    return {
+      data,
+      total,
+      page: page || 1,
+      limit: limit || 10,
+      totalPages: Math.ceil(total / (limit || 10)),
+    };
+  }
+
   async findByCustomerId(customerId: string, options?: PaginationOptions): Promise<PaginatedResult<OrderDocument>> {
     const { page = 1, limit = 10, sort, order = 'desc' } = options || {};
     

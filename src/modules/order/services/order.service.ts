@@ -4,11 +4,16 @@ import { OrderDocument, OrderStatus, PaymentStatus } from '../schemas/order.sche
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderDto } from '../dto/update-order.dto';
 import { BaseService } from '../../../common/services/base.service';
+import { PaginationOptions, PaginatedResult } from '../../../common/interfaces/base.interface';
 
 @Injectable()
 export class OrderService extends BaseService<OrderDocument> {
   constructor(private readonly orderRepository: OrderRepository) {
     super(orderRepository);
+  }
+
+  async findAll(options?: PaginationOptions & { status?: OrderStatus; paymentStatus?: PaymentStatus }): Promise<PaginatedResult<OrderDocument>> {
+    return await this.orderRepository.findAll(options);
   }
 
   async create(createOrderDto: CreateOrderDto): Promise<OrderDocument> {

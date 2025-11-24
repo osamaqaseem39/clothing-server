@@ -55,7 +55,9 @@ export class OrderController {
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
   @ApiQuery({ name: 'sort', required: false, type: String, description: 'Sort field' })
   @ApiQuery({ name: 'order', required: false, enum: ['asc', 'desc'], description: 'Sort order' })
-  async findAll(@Query() options: PaginationOptions) {
+  @ApiQuery({ name: 'status', required: false, enum: OrderStatus, description: 'Filter by order status' })
+  @ApiQuery({ name: 'paymentStatus', required: false, enum: PaymentStatus, description: 'Filter by payment status' })
+  async findAll(@Query() options: PaginationOptions & { status?: OrderStatus; paymentStatus?: PaymentStatus }) {
     return await this.orderService.findAll(options);
   }
 

@@ -17,10 +17,12 @@ export class CategoryRepository extends BaseRepository<CategoryDocument> {
   }
 
   async findActiveCategories(): Promise<CategoryDocument[]> {
-    return this.categoryModel
+    const categories = await this.categoryModel
       .find({ isActive: true })
       .sort({ sortOrder: 1, name: 1 })
       .exec();
+    // Ensure we always return an array
+    return Array.isArray(categories) ? categories : [];
   }
 
   async findRootCategories(): Promise<CategoryDocument[]> {

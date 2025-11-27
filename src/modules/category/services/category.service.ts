@@ -32,10 +32,6 @@ export class CategoryService {
     return this.categoryRepository.findAll(options);
   }
 
-  async findActiveCategories(): Promise<CategoryDocument[]> {
-    return this.categoryRepository.findActiveCategories();
-  }
-
   async findRootCategories(): Promise<CategoryDocument[]> {
     return this.categoryRepository.findRootCategories();
   }
@@ -142,6 +138,11 @@ export class CategoryService {
 
   async getCategoryStats() {
     return this.categoryRepository.getCategoryStats();
+  }
+
+  // Migration method to fix existing categories missing default values
+  async migrateDefaultValues(): Promise<{ updated: number }> {
+    return this.categoryRepository.migrateDefaultValues();
   }
 
   private async checkCircularReference(categoryId: string, parentId: string): Promise<boolean> {

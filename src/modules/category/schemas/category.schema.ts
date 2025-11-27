@@ -66,6 +66,22 @@ export class Category {
 
 export const CategorySchema = SchemaFactory.createForClass(Category);
 
+// Pre-save hook to ensure default values for existing documents
+CategorySchema.pre('save', function(next) {
+  // Set default values if they don't exist
+  if (this.isNew || this.isModified('isActive') === false) {
+    if (this.isActive === undefined || this.isActive === null) {
+      this.isActive = true;
+    }
+  }
+  if (this.isNew || this.isModified('sortOrder') === false) {
+    if (this.sortOrder === undefined || this.sortOrder === null) {
+      this.sortOrder = 0;
+    }
+  }
+  next();
+});
+
 // Indexes
 CategorySchema.index({ parentId: 1 });
 CategorySchema.index({ slug: 1 });

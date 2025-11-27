@@ -64,19 +64,6 @@ export class CategoryController {
     return await this.categoryService.findAll(paginationDto);
   }
 
-  @Get('active')
-  @ApiOperation({ summary: 'Get all active categories' })
-  @ApiResponse({
-    status: 200,
-    description: 'Active categories retrieved successfully',
-    type: [Category],
-  })
-  async findActiveCategories(): Promise<Category[]> {
-    const categories = await this.categoryService.findActiveCategories();
-    // Ensure we always return an array, even if empty
-    return Array.isArray(categories) ? categories : [];
-  }
-
   @Get('tree')
   @ApiOperation({ summary: 'Get category tree structure' })
   @ApiResponse({
@@ -121,6 +108,16 @@ export class CategoryController {
   })
   async getStats() {
     return await this.categoryService.getCategoryStats();
+  }
+
+  @Post('migrate-defaults')
+  @ApiOperation({ summary: 'Migrate existing categories to set default values for isActive and sortOrder' })
+  @ApiResponse({
+    status: 200,
+    description: 'Migration completed successfully',
+  })
+  async migrateDefaults() {
+    return await this.categoryService.migrateDefaultValues();
   }
 
   @Get('parent/:parentId')

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NotificationController } from './controllers/notification.controller';
 import { NotificationService } from './services/notification.service';
@@ -9,6 +10,7 @@ import { EmailTemplate, EmailTemplateSchema } from './schemas/email-template.sch
 
 @Module({
   imports: [
+    ConfigModule,
     MongooseModule.forFeature([
       { name: Notification.name, schema: NotificationSchema },
       { name: EmailTemplate.name, schema: EmailTemplateSchema },

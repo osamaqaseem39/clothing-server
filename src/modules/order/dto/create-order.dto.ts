@@ -1,5 +1,5 @@
-import { IsString, IsNumber, IsArray, IsEnum, IsOptional, ValidateNested, Min, IsMongoId } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsNumber, IsArray, IsEnum, IsOptional, ValidateNested, Min, IsMongoId, ValidateIf } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { OrderStatus, PaymentStatus } from '../schemas/order.schema';
 
@@ -95,9 +95,17 @@ class AddressDto {
 }
 
 export class CreateOrderDto {
-  @ApiProperty({ description: 'Customer ID' })
-  @IsMongoId()
-  customerId: string;
+  @ApiPropertyOptional({ description: 'Customer ID (optional for guest checkout)' })
+  @Transform(({ value }) => {
+    // Convert empty string, null, or undefined to undefined
+    if (value === '' || value === null || value === undefined) {
+      return undefined;
+    }
+    return value;
+  })
+  @ValidateIf((o, value) => value !== undefined && value !== null && value !== '')
+  @IsMongoId({ message: 'customerId must be a valid MongoDB ID when provided' })
+  customerId?: string;
 
   @ApiPropertyOptional({ enum: OrderStatus, description: 'Order status' })
   @IsOptional()

@@ -60,9 +60,9 @@ export class Order {
   @ApiProperty({ description: 'Order ID' })
   _id: string;
 
-  @ApiProperty({ description: 'Customer ID' })
-  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Customer' })
-  customerId: string;
+  @ApiProperty({ description: 'Customer ID (optional for guest checkout)' })
+  @Prop({ required: false, type: MongooseSchema.Types.ObjectId, ref: 'Customer' })
+  customerId?: string;
 
   @ApiProperty({ enum: OrderStatus, description: 'Order status' })
   @Prop({ required: true, enum: OrderStatus, default: OrderStatus.PENDING })
@@ -166,6 +166,10 @@ export class Order {
   @Prop({ type: [OrderItem], required: true })
   items: OrderItem[];
 
+  @ApiProperty({ description: 'Tracking ID for order shipment' })
+  @Prop({ unique: true, sparse: true, trim: true })
+  trackingId?: string;
+
   @ApiProperty({ description: 'Creation timestamp' })
   createdAt: Date;
 
@@ -180,4 +184,5 @@ OrderSchema.index({ customerId: 1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ paymentStatus: 1 });
 OrderSchema.index({ createdAt: -1 });
-OrderSchema.index({ 'items.productId': 1 }); 
+OrderSchema.index({ 'items.productId': 1 });
+OrderSchema.index({ trackingId: 1 }); 

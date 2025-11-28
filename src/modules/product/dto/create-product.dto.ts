@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, IsEnum, IsArray, IsBoolean, Min, IsUrl, ValidateNested } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsEnum, IsArray, IsBoolean, Min, IsUrl, ValidateNested, ValidateIf } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductType, StockStatus, ProductStatus } from '../schemas/product.schema';
 import { Type } from 'class-transformer';
@@ -38,7 +38,8 @@ class ProductSEODto {
 
   @ApiPropertyOptional({ description: 'Canonical URL' })
   @IsOptional()
-  @IsUrl()
+  @ValidateIf((o, value) => value !== undefined && value !== null && value !== '')
+  @IsUrl({}, { message: 'Canonical URL must be a valid URL' })
   canonicalUrl?: string;
 
   @ApiPropertyOptional({ description: 'Open Graph image URL' })

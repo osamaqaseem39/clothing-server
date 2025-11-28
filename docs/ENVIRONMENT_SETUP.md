@@ -25,6 +25,14 @@ This project uses environment variables for configuration, with a structured app
 - `SWAGGER_DESCRIPTION`: API description
 - `SWAGGER_VERSION`: API version (default: 1.0)
 
+### SMTP Email Configuration
+- `SMTP_HOST`: SMTP server hostname (default: mail.spacemail.com)
+- `SMTP_PORT`: SMTP server port (default: 465)
+- `SMTP_USER`: SMTP username/email (default: orders@shestrends.com)
+- `SMTP_PASS`: SMTP password (required)
+- `SMTP_FROM`: Email address to send from (default: same as SMTP_USER)
+- `SMTP_SECURE`: Use SSL/TLS encryption (default: true)
+
 ## Setup
 
 1. Copy `.env.example` to `.env`:
@@ -44,6 +52,7 @@ The configuration is organized into logical groups:
 - **App**: Application-level settings
 - **Swagger**: API documentation settings
 - **JWT**: Authentication settings
+- **SMTP**: Email service configuration
 
 ## Usage in Code
 

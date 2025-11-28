@@ -15,21 +15,50 @@ export class EmailService {
     private configService: ConfigService,
   ) {
     // Initialize nodemailer transporter
-    // For production, configure with actual SMTP settings via environment variables
-    const smtpHost = this.configService.get<string>('SMTP_HOST') || 'smtp.gmail.com';
-    const smtpPort = this.configService.get<number>('SMTP_PORT') || 587;
+    // Configure with SMTP settings via environment variables
+    const smtpHost = this.configService.get<string>('SMTP_HOST') || 'mail.spacemail.com';
+    const smtpPort = this.configService.get<number>('SMTP_PORT') || 465;
     const smtpUser = this.configService.get<string>('SMTP_USER');
     const smtpPass = this.configService.get<string>('SMTP_PASS');
+    const smtpSecure = this.configService.get<string>('SMTP_SECURE') !== 'false'; // Default to true for SSL
 
     if (smtpUser && smtpPass) {
+      const isSecure = smtpPort === 465 || smtpSecure;
+      
       this.transporter = nodemailer.createTransport({
         host: smtpHost,
         port: smtpPort,
-        secure: smtpPort === 465, // true for 465, false for other ports
+        secure: isSecure, // true for 465 (SSL), false for other ports
         auth: {
           user: smtpUser,
           pass: smtpPass,
         },
+        // Connection timeout settings
+        connectionTimeout: 15000, // 15 seconds
+        greetingTimeout: 15000, // 15 seconds
+        socketTimeout: 15000, // 15 seconds
+        // Additional options for better compatibility
+        tls: {
+          rejectUnauthorized: false, // Accept self-signed certificates if needed
+          minVersion: 'TLSv1.2', // Minimum TLS version
+        },
+        // Pool connections for better performance
+        pool: true,
+        maxConnections: 1,
+        maxMessages: 3,
+        // Debug mode (set to true for more detailed logs)
+        debug: process.env.NODE_ENV === 'development',
+        logger: process.env.NODE_ENV === 'development',
+      });
+      
+      // Verify connection (async, don't block startup)
+      this.transporter.verify((error, success) => {
+        if (error) {
+          this.logger.error('SMTP connection verification failed:', error.message);
+          this.logger.warn('Emails will still attempt to send, but connection may fail');
+        } else {
+          this.logger.log('SMTP server connection verified successfully');
+        }
       });
     } else {
       // Fallback to console logging if SMTP is not configured
@@ -57,11 +86,27 @@ export class EmailService {
         [isHtml ? 'html' : 'text']: content,
       };
 
-      const info = await this.transporter.sendMail(mailOptions);
+      // Set a timeout for the email sending operation
+      const sendPromise = this.transporter.sendMail(mailOptions);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email send timeout after 15 seconds')), 15000)
+      );
+
+      const info = await Promise.race([sendPromise, timeoutPromise]) as any;
       this.logger.log(`Email sent successfully to ${to}: ${info.messageId}`);
       return true;
-    } catch (error) {
-      this.logger.error(`Failed to send email to ${to}:`, error);
+    } catch (error: any) {
+      this.logger.error(`Failed to send email to ${to}:`, error.message || error);
+      
+      // If it's a connection error, try to provide helpful information
+      if (error.code === 'ETIMEDOUT' || error.code === 'ECONNREFUSED' || error.message?.includes('Greeting never received')) {
+        this.logger.error('SMTP Connection Error - Check:');
+        this.logger.error('1. SMTP server host and port are correct');
+        this.logger.error('2. Firewall allows outbound connections on SMTP port');
+        this.logger.error('3. SMTP server is accessible from your network');
+        this.logger.error(`4. Current config: ${this.configService.get<string>('SMTP_HOST')}:${this.configService.get<number>('SMTP_PORT')}`);
+      }
+      
       // Log to console as fallback
       this.logger.log(`[EMAIL FALLBACK] To: ${to}`);
       this.logger.log(`[EMAIL FALLBACK] Subject: ${subject}`);

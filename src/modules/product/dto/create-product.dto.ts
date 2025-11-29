@@ -1,7 +1,7 @@
 import { IsString, IsNumber, IsOptional, IsEnum, IsArray, IsBoolean, Min, IsUrl, ValidateNested, ValidateIf } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductType, StockStatus, ProductStatus } from '../schemas/product.schema';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 class ProductColorDto {
   @ApiProperty({ description: 'Color ID reference', type: String })
@@ -37,14 +37,27 @@ class ProductSEODto {
   slug?: string;
 
   @ApiPropertyOptional({ description: 'Canonical URL' })
-  @IsOptional()
+  @Transform(({ value }) => {
+    // Convert empty string, null, or undefined to undefined
+    if (value === '' || value === null || value === undefined) {
+      return undefined;
+    }
+    return value;
+  })
   @ValidateIf((o, value) => value !== undefined && value !== null && value !== '')
   @IsUrl({}, { message: 'Canonical URL must be a valid URL' })
   canonicalUrl?: string;
 
   @ApiPropertyOptional({ description: 'Open Graph image URL' })
-  @IsOptional()
-  @IsUrl()
+  @Transform(({ value }) => {
+    // Convert empty string, null, or undefined to undefined
+    if (value === '' || value === null || value === undefined) {
+      return undefined;
+    }
+    return value;
+  })
+  @ValidateIf((o, value) => value !== undefined && value !== null && value !== '')
+  @IsUrl({}, { message: 'OG Image URL must be a valid URL' })
   ogImage?: string;
 
   @ApiPropertyOptional({ description: 'Prevent search engines from indexing', default: false })

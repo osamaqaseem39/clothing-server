@@ -22,6 +22,7 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { HealthModule } from './modules/health/health.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { MasterDataModule } from './modules/master-data/master-data.module';
+import { BannerModule } from './modules/banner/banner.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { MasterDataModule } from './modules/master-data/master-data.module';
     HealthModule,
     AnalyticsModule,
     MasterDataModule,
+    BannerModule,
   ],
 })
 export class AppModule {} 

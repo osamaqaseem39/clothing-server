@@ -367,8 +367,10 @@ export class ShippingService {
     let cost = deliveryCharge.baseCharge;
     
     // Add per kg charge if weight is provided
+    // Round up weight to the next whole number (ceiling) since rates are per kg
     if (deliveryCharge.chargePerKg && packageDetails?.weight) {
-      cost += deliveryCharge.chargePerKg * packageDetails.weight;
+      const roundedWeight = Math.ceil(packageDetails.weight);
+      cost += deliveryCharge.chargePerKg * roundedWeight;
     }
     
     // Add per item charge if item count is provided

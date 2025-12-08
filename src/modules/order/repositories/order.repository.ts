@@ -174,4 +174,9 @@ export class OrderRepository extends BaseRepository<OrderDocument> {
       completedOrders,
     };
   }
+
+  async trackingIdExists(trackingId: string): Promise<boolean> {
+    const count = await this.orderModel.countDocuments({ trackingId }).exec();
+    return count > 0;
+  }
 } 

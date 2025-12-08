@@ -23,6 +23,7 @@ import { ProductService } from '../services/product.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
+import { ProductFilterDto } from '../dto/product-filter.dto';
 import { Product } from '../schemas/product.schema';
 import { PaginatedResult } from '../../../common/interfaces/base.interface';
 
@@ -53,15 +54,15 @@ export class ProductController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all products with pagination' })
+  @ApiOperation({ summary: 'Get all products with pagination and filters' })
   @ApiResponse({
     status: 200,
     description: 'Products retrieved successfully',
     type: [Product],
   })
-  @ApiQuery({ type: PaginationDto })
-  async findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResult<Product>> {
-    return await this.productService.findAll(paginationDto);
+  @ApiQuery({ type: ProductFilterDto })
+  async findAll(@Query() filterDto: ProductFilterDto): Promise<PaginatedResult<Product>> {
+    return await this.productService.findAllWithFilters(filterDto);
   }
 
   @Get('published')

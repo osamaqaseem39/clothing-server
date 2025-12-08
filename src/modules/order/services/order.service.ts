@@ -26,38 +26,97 @@ export class OrderService extends BaseService<OrderDocument> {
     return `TRK${timestamp}${random}`;
   }
 
+  private async generateUniqueTrackingId(): Promise<string> {
+    let trackingId: string;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    do {
+      trackingId = this.generateTrackingId();
+      attempts++;
+      
+      // Check if tracking ID already exists
+      const exists = await this.orderRepository.trackingIdExists(trackingId);
+      if (!exists) {
+        return trackingId;
+      }
+    } while (attempts < maxAttempts);
+
+    // If we couldn't generate a unique ID after max attempts, add more randomness
+    const extraRandom = Math.random().toString(36).substring(2, 10).toUpperCase();
+    return `TRK${Date.now()}${extraRandom}`;
+  }
+
   async findAll(options?: PaginationOptions & { status?: OrderStatus; paymentStatus?: PaymentStatus }): Promise<PaginatedResult<OrderDocument>> {
     return await this.orderRepository.findAll(options);
   }
 
   async create(createOrderDto: CreateOrderDto): Promise<OrderDocument> {
-    // For COD orders, set payment status to UNPAID initially
-    if (createOrderDto.paymentMethod.toLowerCase() === 'cash_on_delivery' || 
-        createOrderDto.paymentMethod.toLowerCase() === 'cod') {
-      createOrderDto.paymentStatus = PaymentStatus.UNPAID;
-    }
-
-    // Generate tracking ID
-    const trackingId = this.generateTrackingId();
-    
-    // Create order with tracking ID
-    const order = await this.orderRepository.create({
-      ...createOrderDto,
-      trackingId,
-    });
-
-    // Send order confirmation email
-    const customerEmail = order.shippingAddress?.email || order.billingAddress?.email;
-    if (customerEmail) {
-      try {
-        await this.sendOrderConfirmationEmail(order, customerEmail);
-      } catch (error) {
-        console.error('Failed to send order confirmation email:', error);
-        // Don't fail order creation if email fails
+    try {
+      // For COD orders, set payment status to UNPAID initially
+      if (createOrderDto.paymentMethod && 
+          (createOrderDto.paymentMethod.toLowerCase() === 'cash_on_delivery' || 
+           createOrderDto.paymentMethod.toLowerCase() === 'cod')) {
+        createOrderDto.paymentStatus = PaymentStatus.UNPAID;
       }
-    }
 
-    return order;
+      // Ensure default values for optional fields
+      if (!createOrderDto.paymentStatus) {
+        createOrderDto.paymentStatus = PaymentStatus.UNPAID;
+      }
+      if (!createOrderDto.status) {
+        createOrderDto.status = OrderStatus.PENDING;
+      }
+      if (!createOrderDto.currency) {
+        createOrderDto.currency = 'PKR';
+      }
+      if (createOrderDto.discountTotal === undefined) {
+        createOrderDto.discountTotal = 0;
+      }
+      if (createOrderDto.shippingTotal === undefined) {
+        createOrderDto.shippingTotal = 0;
+      }
+      if (createOrderDto.taxTotal === undefined) {
+        createOrderDto.taxTotal = 0;
+      }
+
+      // Ensure postalCode is not empty string (use default if empty)
+      if (createOrderDto.billingAddress?.postalCode === '') {
+        createOrderDto.billingAddress.postalCode = 'N/A';
+      }
+      if (createOrderDto.shippingAddress?.postalCode === '') {
+        createOrderDto.shippingAddress.postalCode = 'N/A';
+      }
+
+      // Generate unique tracking ID
+      const trackingId = await this.generateUniqueTrackingId();
+      
+      // Create order with tracking ID
+      const order = await this.orderRepository.create({
+        ...createOrderDto,
+        trackingId,
+      });
+
+      // Send order confirmation email (non-blocking)
+      const customerEmail = order.shippingAddress?.email || order.billingAddress?.email;
+      if (customerEmail) {
+        try {
+          await this.sendOrderConfirmationEmail(order, customerEmail);
+        } catch (error) {
+          console.error('Failed to send order confirmation email:', error);
+          // Don't fail order creation if email fails
+        }
+      }
+
+      return order;
+    } catch (error: any) {
+      console.error('Error creating order:', error);
+      // Re-throw with more context
+      if (error.name === 'ValidationError') {
+        throw new BadRequestException(`Validation error: ${error.message}`);
+      }
+      throw error;
+    }
   }
 
   private async sendOrderConfirmationEmail(order: OrderDocument, email: string): Promise<void> {

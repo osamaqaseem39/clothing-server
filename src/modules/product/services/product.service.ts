@@ -6,6 +6,7 @@ import { ProductImage, ProductImageDocument } from '../schemas/product-image.sch
 import { ProductVariation, ProductVariationDocument } from '../schemas/product-variation.schema';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
+import { ProductFilterDto } from '../dto/product-filter.dto';
 import { PaginationOptions, PaginatedResult } from '../../../common/interfaces/base.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -524,6 +525,10 @@ export class ProductService extends BaseService<ProductDocument> {
 
   async findPublishedProducts(options?: PaginationOptions): Promise<PaginatedResult<ProductDocument>> {
     return await this.productRepository.findPublishedProducts(options);
+  }
+
+  async findAllWithFilters(filterDto: ProductFilterDto): Promise<PaginatedResult<ProductDocument>> {
+    return await this.productRepository.findAllWithFilters(filterDto);
   }
 
   async updateStock(id: string, quantity: number): Promise<ProductDocument> {

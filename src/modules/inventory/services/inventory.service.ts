@@ -1,4 +1,4 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Inventory, InventoryDocument } from '../schemas/inventory.schema';
@@ -206,39 +206,76 @@ export class InventoryService {
   }
 
   async adjustStock(id: string, adjustStockDto: AdjustStockDto): Promise<Inventory> {
-    const inventory = await this.findById(id);
-    if (!inventory) {
-      throw new Error('Inventory not found');
+    try {
+      const inventory = await this.findById(id);
+      if (!inventory) {
+        throw new NotFoundException(`Inventory with ID ${id} not found`);
+      }
+
+      const oldStock = inventory.currentStock;
+      const newStock = oldStock + adjustStockDto.quantity;
+
+      if (newStock < 0) {
+        throw new BadRequestException('Insufficient stock for adjustment. Cannot have negative stock.');
+      }
+
+      // Calculate available stock
+      const reservedStock = inventory.reservedStock || 0;
+      const availableStock = newStock - reservedStock;
+
+      // Update inventory in database
+      const updatedInventory = await this.inventoryModel.findByIdAndUpdate(
+        id,
+        {
+          currentStock: newStock,
+          availableStock: availableStock,
+          // Update status based on stock level
+          status: newStock === 0 ? 'out_of_stock' : 
+                  (newStock <= (inventory.reorderPoint || 0) ? 'low_stock' : 'in_stock'),
+        },
+        { new: true } // Return updated document
+      ).exec();
+
+      if (!updatedInventory) {
+        throw new NotFoundException(`Inventory with ID ${id} not found after update`);
+      }
+
+      // Record movement
+      try {
+        await this.recordMovement({
+          inventoryId: id,
+          type: adjustStockDto.type,
+          quantity: adjustStockDto.quantity,
+          previousStock: oldStock,
+          newStock: newStock,
+          referenceId: adjustStockDto.referenceId,
+          referenceType: adjustStockDto.referenceType,
+          notes: adjustStockDto.notes,
+          unitCost: adjustStockDto.unitCost,
+        });
+      } catch (movementError) {
+        console.error('Error recording inventory movement:', movementError);
+        // Don't fail the adjustment if movement recording fails
+      }
+
+      // Sync to product (non-blocking)
+      try {
+        await this.syncToProduct(updatedInventory);
+      } catch (syncError) {
+        console.error('Error syncing inventory to product:', syncError);
+        // Don't fail the adjustment if sync fails
+      }
+
+      return updatedInventory;
+    } catch (error: any) {
+      // Re-throw NestJS exceptions as-is
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      // Wrap other errors
+      console.error('Error adjusting stock:', error);
+      throw new BadRequestException(`Failed to adjust stock: ${error.message || 'Unknown error'}`);
     }
-
-    const oldStock = inventory.currentStock;
-    const newStock = oldStock + adjustStockDto.quantity;
-
-    if (newStock < 0) {
-      throw new Error('Insufficient stock for adjustment');
-    }
-
-    inventory.currentStock = newStock;
-    inventory.availableStock = newStock - inventory.reservedStock;
-    await this.inventoryModel.findByIdAndUpdate(id, { 
-      currentStock: newStock,
-      availableStock: newStock - inventory.reservedStock,
-    });
-
-    // Record movement
-    await this.recordMovement({
-      inventoryId: id,
-      type: adjustStockDto.type,
-      quantity: adjustStockDto.quantity,
-      referenceId: adjustStockDto.referenceId,
-      referenceType: adjustStockDto.referenceType,
-      notes: adjustStockDto.notes
-    });
-
-    // Sync to product
-    await this.syncToProduct(inventory);
-
-    return inventory;
   }
 
   async transferStock(id: string, transferStockDto: TransferStockDto): Promise<{ from: Inventory; to: Inventory }> {

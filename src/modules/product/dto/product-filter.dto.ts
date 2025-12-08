@@ -2,6 +2,13 @@ import { IsOptional, IsString, IsArray, IsBoolean, IsNumber, Min, Max } from 'cl
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 
+// Helper to transform query params to arrays (handles both single values and arrays)
+const transformToArray = ({ value }) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (Array.isArray(value)) return value;
+  return [value];
+};
+
 export class ProductFilterDto {
   // Basic filters
   @ApiPropertyOptional({ description: 'Search term' })
@@ -9,14 +16,16 @@ export class ProductFilterDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ description: 'Category IDs' })
+  @ApiPropertyOptional({ description: 'Category IDs', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   categories?: string[];
 
-  @ApiPropertyOptional({ description: 'Brand IDs' })
+  @ApiPropertyOptional({ description: 'Brand IDs', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   brands?: string[];
@@ -41,92 +50,107 @@ export class ProductFilterDto {
   status?: string;
 
   // Pakistani Clothing Specific Filters
-  @ApiPropertyOptional({ description: 'Fabric types' })
+  @ApiPropertyOptional({ description: 'Fabric types', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   fabrics?: string[];
 
-  @ApiPropertyOptional({ description: 'Collections' })
+  @ApiPropertyOptional({ description: 'Collections', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   collectionNames?: string[];
 
-  @ApiPropertyOptional({ description: 'Occasions' })
+  @ApiPropertyOptional({ description: 'Occasions', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   occasions?: string[];
 
-  @ApiPropertyOptional({ description: 'Seasons' })
+  @ApiPropertyOptional({ description: 'Seasons', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   seasons?: string[];
 
-  @ApiPropertyOptional({ description: 'Designers' })
+  @ApiPropertyOptional({ description: 'Designers', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   designers?: string[];
 
-  @ApiPropertyOptional({ description: 'Handwork types' })
+  @ApiPropertyOptional({ description: 'Handwork types', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   handwork?: string[];
 
-  @ApiPropertyOptional({ description: 'Color families' })
+  @ApiPropertyOptional({ description: 'Color families', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   colorFamilies?: string[];
 
-  @ApiPropertyOptional({ description: 'Pattern types' })
+  @ApiPropertyOptional({ description: 'Pattern types', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   patterns?: string[];
 
-  @ApiPropertyOptional({ description: 'Sleeve lengths' })
+  @ApiPropertyOptional({ description: 'Sleeve lengths', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   sleeveLengths?: string[];
 
-  @ApiPropertyOptional({ description: 'Neckline styles' })
+  @ApiPropertyOptional({ description: 'Neckline styles', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   necklines?: string[];
 
-  @ApiPropertyOptional({ description: 'Lengths' })
+  @ApiPropertyOptional({ description: 'Lengths', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   lengths?: string[];
 
-  @ApiPropertyOptional({ description: 'Fit types' })
+  @ApiPropertyOptional({ description: 'Fit types', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   fits?: string[];
 
-  @ApiPropertyOptional({ description: 'Age groups' })
+  @ApiPropertyOptional({ description: 'Age groups', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   ageGroups?: string[];
 
-  @ApiPropertyOptional({ description: 'Body types' })
+  @ApiPropertyOptional({ description: 'Body types', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   bodyTypes?: string[];
 
-  @ApiPropertyOptional({ description: 'Available sizes' })
+  @ApiPropertyOptional({ description: 'Available sizes', type: [String] })
   @IsOptional()
+  @Transform(transformToArray)
   @IsArray()
   @IsString({ each: true })
   sizes?: string[];

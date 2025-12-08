@@ -76,6 +76,13 @@ class AddressDto {
   state?: string;
 
   @ApiProperty({ description: 'Postal code' })
+  @Transform(({ value }) => {
+    // Convert empty string to 'N/A' to satisfy schema requirement
+    if (value === '' || value === null || value === undefined) {
+      return 'N/A';
+    }
+    return value;
+  })
   @IsString()
   postalCode: string;
 

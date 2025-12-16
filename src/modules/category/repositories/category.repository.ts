@@ -16,17 +16,29 @@ export class CategoryRepository extends BaseRepository<CategoryDocument> {
   // Note: toJSON transform in schema handles defaults for JSON serialization
   private ensureDefaults(category: CategoryDocument | null): CategoryDocument | null {
     if (!category) return null;
-    if (category.isActive === undefined || category.isActive === null) {
-      category.isActive = true;
+    // Convert to plain object to ensure defaults are applied
+    const categoryObj = category.toObject ? category.toObject() : category;
+    if (categoryObj.isActive === undefined || categoryObj.isActive === null) {
+      categoryObj.isActive = true;
     }
-    if (category.sortOrder === undefined || category.sortOrder === null) {
-      category.sortOrder = 0;
+    if (categoryObj.sortOrder === undefined || categoryObj.sortOrder === null) {
+      categoryObj.sortOrder = 0;
     }
-    return category;
+    // Create a new document with the defaults applied
+    return new this.categoryModel(categoryObj) as CategoryDocument;
   }
 
   private ensureDefaultsArray(categories: CategoryDocument[]): CategoryDocument[] {
-    return categories.map(cat => this.ensureDefaults(cat)!).filter(Boolean);
+    return categories.map(cat => {
+      const categoryObj = cat.toObject ? cat.toObject() : cat;
+      if (categoryObj.isActive === undefined || categoryObj.isActive === null) {
+        categoryObj.isActive = true;
+      }
+      if (categoryObj.sortOrder === undefined || categoryObj.sortOrder === null) {
+        categoryObj.sortOrder = 0;
+      }
+      return new this.categoryModel(categoryObj) as CategoryDocument;
+    }).filter(Boolean);
   }
 
   async findBySlug(slug: string): Promise<CategoryDocument | null> {
@@ -48,12 +60,19 @@ export class CategoryRepository extends BaseRepository<CategoryDocument> {
     const sortOption = sortField ? { [sortField]: orderBy === 'desc' ? -1 : 1 } : { createdAt: -1 } as any;
     
     const [data, total] = await Promise.all([
-      this.categoryModel.find().sort(sortOption).skip(skip).limit(limit).exec(),
+      this.categoryModel.find().sort(sortOption).skip(skip).limit(limit).lean().exec(),
       this.categoryModel.countDocuments().exec(),
     ]);
 
+    // Apply defaults to plain objects
+    const dataWithDefaults = (data as any[]).map(cat => ({
+      ...cat,
+      isActive: cat.isActive !== undefined && cat.isActive !== null ? cat.isActive : true,
+      sortOrder: cat.sortOrder !== undefined && cat.sortOrder !== null ? cat.sortOrder : 0,
+    }));
+
     return {
-      data: this.ensureDefaultsArray(data),
+      data: dataWithDefaults,
       total,
       page: page || 1,
       limit: limit || 10,
@@ -156,20 +175,41 @@ export class CategoryRepository extends BaseRepository<CategoryDocument> {
   }
 
   // Migration method to set default values for existing categories
-  async migrateDefaultValues(): Promise<{ updated: number }> {
+  async migrateDefaultValues(activateAll: boolean = false): Promise<{ updated: number }> {
+    const query: any = {
+      $or: [
+        { isActive: { $exists: false } },
+        { isActive: null },
+        { sortOrder: { $exists: false } },
+        { sortOrder: null }
+      ]
+    };
+
+    // If activateAll is true, also include categories that are explicitly set to false
+    if (activateAll) {
+      query.$or.push({ isActive: false });
+    }
+
     const result = await this.categoryModel.updateMany(
-      {
-        $or: [
-          { isActive: { $exists: false } },
-          { isActive: null },
-          { sortOrder: { $exists: false } },
-          { sortOrder: null }
-        ]
-      },
+      query,
       {
         $set: {
           isActive: true,
           sortOrder: 0
+        }
+      }
+    ).exec();
+    
+    return { updated: result.modifiedCount };
+  }
+
+  // Method to activate all categories
+  async activateAllCategories(): Promise<{ updated: number }> {
+    const result = await this.categoryModel.updateMany(
+      {},
+      {
+        $set: {
+          isActive: true
         }
       }
     ).exec();

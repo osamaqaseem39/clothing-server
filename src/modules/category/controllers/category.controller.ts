@@ -112,12 +112,24 @@ export class CategoryController {
 
   @Post('migrate-defaults')
   @ApiOperation({ summary: 'Migrate existing categories to set default values for isActive and sortOrder' })
+  @ApiQuery({ name: 'activateAll', required: false, type: Boolean, description: 'If true, also activate categories that are explicitly set to false' })
   @ApiResponse({
     status: 200,
     description: 'Migration completed successfully',
   })
-  async migrateDefaults() {
-    return await this.categoryService.migrateDefaultValues();
+  async migrateDefaults(@Query('activateAll') activateAll?: string) {
+    const shouldActivateAll = activateAll === 'true' || activateAll === '1';
+    return await this.categoryService.migrateDefaultValues(shouldActivateAll);
+  }
+
+  @Post('activate-all')
+  @ApiOperation({ summary: 'Activate all categories' })
+  @ApiResponse({
+    status: 200,
+    description: 'All categories activated successfully',
+  })
+  async activateAll() {
+    return await this.categoryService.activateAllCategories();
   }
 
   @Get('parent/:parentId')

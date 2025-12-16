@@ -82,8 +82,40 @@ CategorySchema.pre('save', function(next) {
   next();
 });
 
+// Post-find hook to ensure defaults are set on retrieved documents
+CategorySchema.post(['find', 'findOne', 'findOneAndUpdate'], function(docs) {
+  if (!docs) return;
+  
+  const documents = Array.isArray(docs) ? docs : [docs];
+  documents.forEach((doc: any) => {
+    if (doc && typeof doc === 'object') {
+      if (doc.isActive === undefined || doc.isActive === null) {
+        doc.isActive = true;
+      }
+      if (doc.sortOrder === undefined || doc.sortOrder === null) {
+        doc.sortOrder = 0;
+      }
+    }
+  });
+});
+
 // Transform to ensure defaults are included in JSON serialization
 CategorySchema.set('toJSON', {
+  transform: function(doc, ret) {
+    // Ensure isActive defaults to true if not set
+    if (ret.isActive === undefined || ret.isActive === null) {
+      ret.isActive = true;
+    }
+    // Ensure sortOrder defaults to 0 if not set
+    if (ret.sortOrder === undefined || ret.sortOrder === null) {
+      ret.sortOrder = 0;
+    }
+    return ret;
+  }
+});
+
+// Also set toObject transform for consistency
+CategorySchema.set('toObject', {
   transform: function(doc, ret) {
     // Ensure isActive defaults to true if not set
     if (ret.isActive === undefined || ret.isActive === null) {

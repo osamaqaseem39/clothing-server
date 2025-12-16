@@ -141,8 +141,13 @@ export class CategoryService {
   }
 
   // Migration method to fix existing categories missing default values
-  async migrateDefaultValues(): Promise<{ updated: number }> {
-    return this.categoryRepository.migrateDefaultValues();
+  async migrateDefaultValues(activateAll: boolean = false): Promise<{ updated: number }> {
+    return this.categoryRepository.migrateDefaultValues(activateAll);
+  }
+
+  // Method to activate all categories
+  async activateAllCategories(): Promise<{ updated: number }> {
+    return this.categoryRepository.activateAllCategories();
   }
 
   private async checkCircularReference(categoryId: string, parentId: string): Promise<boolean> {

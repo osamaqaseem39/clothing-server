@@ -31,7 +31,7 @@ async function createApp(): Promise<NestExpressApplication> {
   app.useStaticAssets(join(__dirname, '..', 'public'));
 
   // CORS configuration tailored for Next.js (supports exact origins and suffix-based matches like .vercel.app)
-  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,https://shestrends.com')
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,https://shestrends.com,https://www.shestrends.com')
     .split(',')
     .map(o => o.trim())
     .filter(Boolean);

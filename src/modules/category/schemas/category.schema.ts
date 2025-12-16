@@ -82,6 +82,21 @@ CategorySchema.pre('save', function(next) {
   next();
 });
 
+// Transform to ensure defaults are included in JSON serialization
+CategorySchema.set('toJSON', {
+  transform: function(doc, ret) {
+    // Ensure isActive defaults to true if not set
+    if (ret.isActive === undefined || ret.isActive === null) {
+      ret.isActive = true;
+    }
+    // Ensure sortOrder defaults to 0 if not set
+    if (ret.sortOrder === undefined || ret.sortOrder === null) {
+      ret.sortOrder = 0;
+    }
+    return ret;
+  }
+});
+
 // Indexes
 CategorySchema.index({ parentId: 1 });
 CategorySchema.index({ slug: 1 });

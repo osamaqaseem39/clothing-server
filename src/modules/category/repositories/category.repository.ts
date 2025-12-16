@@ -12,7 +12,8 @@ export class CategoryRepository extends BaseRepository<CategoryDocument> {
     super(categoryModel);
   }
 
-  // Helper method to ensure default values are set
+  // Helper method to ensure default values are set (for in-memory operations)
+  // Note: toJSON transform in schema handles defaults for JSON serialization
   private ensureDefaults(category: CategoryDocument | null): CategoryDocument | null {
     if (!category) return null;
     if (category.isActive === undefined || category.isActive === null) {

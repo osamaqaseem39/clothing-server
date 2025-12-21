@@ -135,3 +135,4 @@ CategorySchema.index({ slug: 1 });
 CategorySchema.index({ isActive: 1 });
 CategorySchema.index({ sortOrder: 1 });
 CategorySchema.index({ name: 'text', description: 'text' });
+

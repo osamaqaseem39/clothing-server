@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, FilterQuery } from 'mongoose';
 import { Category, CategoryDocument } from '../schemas/category.schema';
+import { Product, ProductDocument } from '../../product/schemas/product.schema';
 import { BaseRepository } from '../../../common/repositories/base.repository';
 
 @Injectable()
 export class CategoryRepository extends BaseRepository<CategoryDocument> {
   constructor(
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
+    @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {
     super(categoryModel);
   }
@@ -215,5 +217,54 @@ export class CategoryRepository extends BaseRepository<CategoryDocument> {
     ).exec();
     
     return { updated: result.modifiedCount };
+  }
+
+  // Get all categories with product counts, sorted by product count
+  async findAllWithProductCounts(): Promise<Array<CategoryDocument & { productCount: number }>> {
+    // Get the collection name from the Product model
+    const productCollectionName = this.productModel.collection.name;
+    
+    // Use aggregation to count products per category
+    const categoriesWithCounts = await this.categoryModel.aggregate([
+      {
+        $lookup: {
+          from: productCollectionName,
+          let: { categoryId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$$categoryId', '$categories']
+                }
+              }
+            }
+          ],
+          as: 'products'
+        }
+      },
+      {
+        $addFields: {
+          productCount: { $size: '$products' }
+        }
+      },
+      {
+        $project: {
+          products: 0
+        }
+      },
+      {
+        $sort: { productCount: -1 }
+      }
+    ]).exec();
+
+    // Apply defaults and convert to CategoryDocument
+    return categoriesWithCounts.map(cat => {
+      const categoryObj = {
+        ...cat,
+        isActive: cat.isActive !== undefined && cat.isActive !== null ? cat.isActive : true,
+        sortOrder: cat.sortOrder !== undefined && cat.sortOrder !== null ? cat.sortOrder : 0,
+      };
+      return new this.categoryModel(categoryObj) as CategoryDocument & { productCount: number };
+    });
   }
 }

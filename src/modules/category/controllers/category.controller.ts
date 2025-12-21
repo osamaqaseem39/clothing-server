@@ -110,6 +110,17 @@ export class CategoryController {
     return await this.categoryService.getCategoryStats();
   }
 
+  @Get('with-product-counts')
+  @ApiOperation({ summary: 'Get all categories with product counts, sorted by product count' })
+  @ApiResponse({
+    status: 200,
+    description: 'Categories with product counts retrieved successfully',
+    type: [Category],
+  })
+  async findAllWithProductCounts() {
+    return await this.categoryService.findAllWithProductCounts();
+  }
+
   @Post('migrate-defaults')
   @ApiOperation({ summary: 'Migrate existing categories to set default values for isActive and sortOrder' })
   @ApiQuery({ name: 'activateAll', required: false, type: Boolean, description: 'If true, also activate categories that are explicitly set to false' })

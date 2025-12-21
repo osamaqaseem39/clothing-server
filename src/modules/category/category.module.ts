@@ -4,10 +4,14 @@ import { CategoryController } from './controllers/category.controller';
 import { CategoryService } from './services/category.service';
 import { CategoryRepository } from './repositories/category.repository';
 import { Category, CategorySchema } from './schemas/category.schema';
+import { Product, ProductSchema } from '../product/schemas/product.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Category.name, schema: CategorySchema }]),
+    MongooseModule.forFeature([
+      { name: Category.name, schema: CategorySchema },
+      { name: Product.name, schema: ProductSchema },
+    ]),
   ],
   controllers: [CategoryController],
   providers: [CategoryService, CategoryRepository],

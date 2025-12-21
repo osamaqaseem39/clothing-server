@@ -150,6 +150,10 @@ export class CategoryService {
     return this.categoryRepository.activateAllCategories();
   }
 
+  async findAllWithProductCounts(): Promise<Array<CategoryDocument & { productCount: number }>> {
+    return this.categoryRepository.findAllWithProductCounts();
+  }
+
   private async checkCircularReference(categoryId: string, parentId: string): Promise<boolean> {
     let currentParentId = parentId;
     

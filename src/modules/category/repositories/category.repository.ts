@@ -264,7 +264,7 @@ export class CategoryRepository extends BaseRepository<CategoryDocument> {
         isActive: cat.isActive !== undefined && cat.isActive !== null ? cat.isActive : true,
         sortOrder: cat.sortOrder !== undefined && cat.sortOrder !== null ? cat.sortOrder : 0,
       };
-      return new this.categoryModel(categoryObj) as CategoryDocument & { productCount: number };
+      return new this.categoryModel(categoryObj) as unknown as CategoryDocument & { productCount: number };
     });
   }
 }
